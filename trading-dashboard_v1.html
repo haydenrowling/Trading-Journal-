@@ -557,6 +557,16 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
 ════════════════════════════════════════════════ */
 .disclaimer { text-align:center; font-family:var(--mono); font-size:9.5px; color:var(--text3); padding-top:28px; border-top:1px solid var(--border); margin-top:12px; }
 
+/* Date filter bar */
+.dash-filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); }
+.dfb-label { font-size:9.5px; font-family:var(--mono); letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); flex-shrink:0; }
+.dfb-sep { font-size:10px; color:var(--text3); flex-shrink:0; }
+.date-fi { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:var(--rsm); color:var(--text); font-size:11px; padding:6px 10px; outline:none; font-family:var(--mono); cursor:pointer; transition:border-color 0.2s; }
+.date-fi:focus { border-color:rgba(59,130,246,0.55); }
+.dfb-count { font-family:var(--mono); font-size:11px; color:var(--text2); margin-left:auto; flex-shrink:0; }
+.btn-dfb-clear { font-family:var(--mono); font-size:10px; color:var(--text3); background:transparent; border:1px solid var(--border); border-radius:var(--rsm); padding:5px 12px; cursor:pointer; transition:all 0.18s; flex-shrink:0; }
+.btn-dfb-clear:hover { color:var(--text); border-color:var(--border2); }
+
 @keyframes dash { to { stroke-dashoffset:0; } }
 @media(max-width:600px) { .kpi-row{grid-template-columns:repeat(2,1fr);} .setup-grid{grid-template-columns:repeat(2,1fr);} .ins-grid{grid-template-columns:1fr;} }
 </style>
@@ -599,9 +609,17 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
     <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
       <div>
         <div class="page-title">Performance Dashboard</div>
-        <div class="page-sub">Apr 2025 – May 2026 &nbsp;·&nbsp; Historical data from Notion export &nbsp;·&nbsp; 69 trades</div>
+        <div class="page-sub" id="dash-sub">Loading…</div>
       </div>
       <div style="background:var(--gold-dim);border:1px solid rgba(240,180,41,0.28);color:var(--gold);font-family:var(--mono);font-size:10px;padding:5px 13px;border-radius:20px">1R = $1,000 equiv.</div>
+    </div>
+    <div class="dash-filter-bar">
+      <span class="dfb-label">Date range</span>
+      <input type="date" class="date-fi" id="dfb-from" onchange="onDateFilter()">
+      <span class="dfb-sep">→</span>
+      <input type="date" class="date-fi" id="dfb-to" onchange="onDateFilter()">
+      <button class="btn-dfb-clear" onclick="clearDateFilter()">Clear</button>
+      <span class="dfb-count" id="dfb-count"></span>
     </div>
   </header>
 
@@ -1191,7 +1209,8 @@ function goTo(pageId) {
   document.getElementById('page-' + pageId).classList.add('active');
   document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
   window.scrollTo(0, 0);
-  if (pageId === 'trades') renderTradesTable();
+  if (pageId === 'trades')    renderTradesTable();
+  if (pageId === 'dashboard') setTimeout(() => renderDashboard(), 50);
 }
 
 tabs.forEach(t => t.addEventListener('click', () => goTo(t.dataset.page)));
@@ -1272,57 +1291,186 @@ const HIST = [
 ];
 
 /* ═══════════════════════════════════════════════════════════
-   COMPUTED STATS (historical)
+   DATE FILTER STATE
 ═══════════════════════════════════════════════════════════ */
-const wins   = HIST.filter(t => t.result === 'Win');
-const losses = HIST.filter(t => t.result === 'Loss');
-const bes    = HIST.filter(t => t.result === 'Breakeven');
-const totalR = HIST.reduce((a,t)=>a+t.pnl_r,0);
-const winRate = (wins.length/HIST.length*100).toFixed(1);
-const avgWin  = (wins.reduce((a,t)=>a+t.pnl_r,0)/wins.length).toFixed(2);
-const avgLoss = (losses.reduce((a,t)=>a+t.pnl_r,0)/losses.length).toFixed(2);
-const pf      = (wins.reduce((a,t)=>a+t.pnl_r,0)/Math.abs(losses.reduce((a,t)=>a+t.pnl_r,0))).toFixed(2);
-const exp     = (totalR/HIST.length).toFixed(2);
-const bestTr  = HIST.reduce((a,b)=>b.pnl_r>a.pnl_r?b:a);
+let dashDateFrom = '';
+let dashDateTo   = '';
 
-const PAIR_STATS = {
-  "AUD/USD":{"count":36,"wins":22,"losses":7,"pnl_r":64.0,"wr":61.1},
-  "Gold":   {"count":20,"wins":14,"losses":6,"pnl_r":40.0,"wr":70.0},
-  "GBP/USD":{"count":10,"wins":5, "losses":1,"pnl_r":10.5,"wr":50.0},
-  "DAX":    {"count":2, "wins":1, "losses":1,"pnl_r":1.5, "wr":50.0},
-  "USD/JPY":{"count":1, "wins":1, "losses":0,"pnl_r":1.5, "wr":100.0}
-};
-const SETUP_STATS = {
-  "IPS + Sweep":       {"count":21,"wins":10,"losses":7,"pnl_r":25.0,"wr":47.6},
-  "IPS Continuation":  {"count":17,"wins":12,"losses":4,"pnl_r":26.0,"wr":70.6},
-  "Besh Strategy":     {"count":9, "wins":4, "losses":1,"pnl_r":10.0,"wr":44.4},
-  "NC Model + Sweep":  {"count":6, "wins":4, "losses":1,"pnl_r":10.0,"wr":66.7},
-  "IPS + Joker Sweep": {"count":4, "wins":2, "losses":1,"pnl_r":6.0, "wr":50.0},
-  "EPS + IPS + Sweep": {"count":2, "wins":2, "losses":0,"pnl_r":6.0, "wr":100.0},
-  "IPS + FBoS":        {"count":2, "wins":2, "losses":0,"pnl_r":10.0,"wr":100.0},
-  "Joker Sweep":       {"count":2, "wins":2, "losses":0,"pnl_r":7.0, "wr":100.0},
-  "NC Model":          {"count":1, "wins":1, "losses":0,"pnl_r":1.5, "wr":100.0},
-  "Backtest":          {"count":4, "wins":4, "losses":0,"pnl_r":16.5,"wr":100.0}
-};
-const SESS_STATS = {
-  "London":     {"count":28,"wins":18,"losses":7,"bes":3,"pnl_r":47.0,"wr":64.3,"color":"#5ab4f5"},
-  "Asia":       {"count":26,"wins":15,"losses":6,"bes":5,"pnl_r":39.5,"wr":57.7,"color":"#a78bfa"},
-  "New York":   {"count":9, "wins":6, "losses":2,"bes":1,"pnl_r":20.0,"wr":66.7,"color":"#f0b429"},
-  "Asia/London":{"count":4, "wins":2, "losses":0,"bes":2,"pnl_r":3.0, "wr":50.0,"color":"#00d97e"},
-  "London/NY":  {"count":2, "wins":2, "losses":0,"bes":0,"pnl_r":8.0, "wr":100.0,"color":"#f04f4f"}
-};
+function onDateFilter() {
+  dashDateFrom = document.getElementById('dfb-from').value;
+  dashDateTo   = document.getElementById('dfb-to').value;
+  renderDashboard();
+}
+function clearDateFilter() {
+  dashDateFrom = '';
+  dashDateTo   = '';
+  document.getElementById('dfb-from').value = '';
+  document.getElementById('dfb-to').value   = '';
+  renderDashboard();
+}
+
+/* Parse a trade's date into a JS Date (handles both HIST "D/M/YY" and ISO datetime) */
+function parseTradeDate(t) {
+  if (t.datetime) return new Date(t.datetime);
+  if (t.date && t.date !== '—') {
+    const parts = t.date.split('/');
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      return new Date(2000 + parseInt(y), parseInt(m) - 1, parseInt(d));
+    }
+  }
+  return null;
+}
+
+/* Build normalised combined trade list (HIST + localStorage), applying date filter */
+function getActiveTrades() {
+  const manualTrades = getNewTrades().map(t => ({
+    _src:      'manual',
+    date:      t.datetime ? t.datetime.split('T')[0] : '—',
+    datetime:  t.datetime,
+    pair:      t.pair,
+    direction: t.direction,
+    session:   t.session,
+    setup:     t.model,
+    type:      t.type,
+    rr:        parseFloat(t.rr) || 0,
+    pnl_r:     t.result === 'Win' ? parseFloat(t.rr) || 0
+               : t.result === 'Loss' ? -1 : 0,
+    result:    t.result,
+    notes:     t.lessons || '',
+  }));
+
+  const histTrades = HIST.map(t => ({ _src: 'notion', datetime: null, ...t }));
+  let combined = [...histTrades, ...manualTrades];
+
+  if (dashDateFrom) {
+    const from = new Date(dashDateFrom);
+    combined = combined.filter(t => { const d = parseTradeDate(t); return d && d >= from; });
+  }
+  if (dashDateTo) {
+    const to = new Date(dashDateTo + 'T23:59:59');
+    combined = combined.filter(t => { const d = parseTradeDate(t); return d && d <= to; });
+  }
+  return combined;
+}
+
+/* ── Live stat computers ─────────────────────────────────── */
+function computeStats(trades) {
+  const wins   = trades.filter(t => t.result === 'Win');
+  const losses = trades.filter(t => t.result === 'Loss');
+  const bes    = trades.filter(t => t.result === 'Breakeven');
+  const totalR = Math.round(trades.reduce((a, t) => a + t.pnl_r, 0) * 10) / 10;
+  const winRate = trades.length ? (wins.length / trades.length * 100).toFixed(1) : '0.0';
+  const avgWin  = wins.length ? (wins.reduce((a,t) => a + t.pnl_r, 0) / wins.length).toFixed(2) : '0.00';
+  const avgLoss = losses.length ? (losses.reduce((a,t) => a + t.pnl_r, 0) / losses.length).toFixed(2) : '0.00';
+  const grossW  = wins.reduce((a,t) => a + t.pnl_r, 0);
+  const grossL  = Math.abs(losses.reduce((a,t) => a + t.pnl_r, 0));
+  const pf      = grossL ? (grossW / grossL).toFixed(2) : '∞';
+  const exp     = trades.length ? (totalR / trades.length).toFixed(2) : '0.00';
+  const bestTr  = trades.length ? trades.reduce((a, b) => b.pnl_r > a.pnl_r ? b : a) : null;
+  return { wins, losses, bes, totalR, winRate, avgWin, avgLoss, pf, exp, bestTr };
+}
+
+function computePairStats(trades) {
+  const map = {};
+  trades.forEach(t => {
+    if (!t.pair) return;
+    if (!map[t.pair]) map[t.pair] = { count:0, wins:0, losses:0, bes:0, pnl_r:0 };
+    map[t.pair].count++;
+    map[t.pair].pnl_r += t.pnl_r;
+    if (t.result === 'Win')       map[t.pair].wins++;
+    else if (t.result === 'Loss') map[t.pair].losses++;
+    else                          map[t.pair].bes++;
+  });
+  Object.keys(map).forEach(p => {
+    map[p].pnl_r = Math.round(map[p].pnl_r * 10) / 10;
+    map[p].wr    = map[p].count ? +(map[p].wins / map[p].count * 100).toFixed(1) : 0;
+  });
+  return map;
+}
+
+function computeSetupStats(trades) {
+  const map = {};
+  trades.forEach(t => {
+    const nm = t.setup || t.model;
+    if (!nm) return;
+    if (!map[nm]) map[nm] = { count:0, wins:0, losses:0, bes:0, pnl_r:0 };
+    map[nm].count++;
+    map[nm].pnl_r += t.pnl_r;
+    if (t.result === 'Win')       map[nm].wins++;
+    else if (t.result === 'Loss') map[nm].losses++;
+    else                          map[nm].bes++;
+  });
+  Object.keys(map).forEach(nm => {
+    map[nm].pnl_r = Math.round(map[nm].pnl_r * 10) / 10;
+    map[nm].wr    = map[nm].count ? +(map[nm].wins / map[nm].count * 100).toFixed(1) : 0;
+  });
+  return map;
+}
+
+function computeSessionStats(trades) {
+  const COLORS = { 'London':'#5ab4f5','Asia':'#a78bfa','New York':'#f0b429','Asia/London':'#00d97e','London/NY':'#f04f4f' };
+  const map = {};
+  trades.forEach(t => {
+    const nm = t.session;
+    if (!nm) return;
+    if (!map[nm]) map[nm] = { count:0, wins:0, losses:0, bes:0, pnl_r:0, color: COLORS[nm] || '#888888' };
+    map[nm].count++;
+    map[nm].pnl_r += t.pnl_r;
+    if (t.result === 'Win')       map[nm].wins++;
+    else if (t.result === 'Loss') map[nm].losses++;
+    else                          map[nm].bes++;
+  });
+  Object.keys(map).forEach(nm => {
+    map[nm].pnl_r = Math.round(map[nm].pnl_r * 10) / 10;
+    map[nm].wr    = map[nm].count ? +(map[nm].wins / map[nm].count * 100).toFixed(1) : 0;
+  });
+  return map;
+}
 
 /* ═══════════════════════════════════════════════════════════
-   DASHBOARD RENDERS
+   MASTER DASHBOARD RENDER
 ═══════════════════════════════════════════════════════════ */
-function renderKPIs() {
+function renderDashboard() {
+  const trades     = getActiveTrades();
+  const stats      = computeStats(trades);
+  const pairStats  = computePairStats(trades);
+  const setupStats = computeSetupStats(trades);
+  const sessStats  = computeSessionStats(trades);
+
+  // Subtitle + filter count
+  const manualCount = getNewTrades().length;
+  const fromLabel   = dashDateFrom || 'Apr 2025';
+  const toLabel     = dashDateTo   || 'present';
+  const sub = document.getElementById('dash-sub');
+  if (sub) sub.textContent =
+    `${fromLabel} → ${toLabel}  ·  ${trades.length} trades  ·  ${manualCount} manually logged`;
+  const cnt = document.getElementById('dfb-count');
+  if (cnt) cnt.textContent = trades.length + ' trades';
+
+  renderKPIs(stats, trades);
+  renderEquity(trades);
+  renderDonut(stats);
+  renderPairs(pairStats);
+  renderSetups(setupStats);
+  renderSessions(sessStats);
+  renderInsights();
+  renderDashTable(dashFilter);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD RENDERS  (now accept live-computed data)
+═══════════════════════════════════════════════════════════ */
+function renderKPIs(stats, trades) {
+  const sign = stats.totalR >= 0 ? '+' : '';
   const kpis = [
-    {lbl:"Total P&L",val:`+${totalR}R`,sub:`${HIST.length} trades recorded`,cls:"g",vc:"green"},
-    {lbl:"Win Rate",val:`${winRate}%`,sub:`${wins.length}W / ${losses.length}L / ${bes.length}BE`,cls:"g",vc:"green"},
-    {lbl:"Profit Factor",val:pf,sub:"Gross profit ÷ gross loss",cls:"au",vc:"gold"},
-    {lbl:"Avg R Multiple",val:`${avgWin}R`,sub:`Expectancy: ${exp}R/trade`,cls:"b",vc:"blue"},
-    {lbl:"Avg Win / Loss",val:`${avgWin}R`,sub:`Avg loss: ${avgLoss}R`,cls:"b",vc:"blue"},
-    {lbl:"Best Trade",val:`+${bestTr.pnl_r}R`,sub:`${bestTr.pair} · ${bestTr.setup}`,cls:"au",vc:"gold"}
+    {lbl:"Total P&L",   val:`${sign}${stats.totalR}R`,          sub:`${trades.length} trades recorded`,             cls:"g",  vc:"green"},
+    {lbl:"Win Rate",    val:`${stats.winRate}%`,                 sub:`${stats.wins.length}W / ${stats.losses.length}L / ${stats.bes.length}BE`, cls:"g", vc:"green"},
+    {lbl:"Profit Factor",val:stats.pf,                           sub:"Gross profit ÷ gross loss",                    cls:"au", vc:"gold"},
+    {lbl:"Avg R Multiple",val:`${stats.avgWin}R`,                sub:`Expectancy: ${stats.exp}R/trade`,              cls:"b",  vc:"blue"},
+    {lbl:"Avg Win / Loss",val:`${stats.avgWin}R`,                sub:`Avg loss: ${stats.avgLoss}R`,                  cls:"b",  vc:"blue"},
+    {lbl:"Best Trade",  val: stats.bestTr ? `+${stats.bestTr.pnl_r}R` : '—',
+                        sub: stats.bestTr ? `${stats.bestTr.pair} · ${stats.bestTr.setup||stats.bestTr.model||''}` : 'No trades', cls:"au", vc:"gold"}
   ];
   document.getElementById('kpi-row').innerHTML = kpis.map(k=>`
     <div class="card kpi ${k.cls}">
@@ -1332,16 +1480,17 @@ function renderKPIs() {
     </div>`).join('');
 }
 
-function renderEquity() {
-  let run=0; const pts=[];
-  HIST.forEach((t,i)=>{ run+=t.pnl_r; pts.push(run); });
+function renderEquity(trades) {
+  let run = 0; const pts = [];
+  trades.forEach(t => { run += t.pnl_r; pts.push(run); });
+  const svg = document.getElementById('eq-svg');
+  if (!pts.length) { svg.innerHTML = ''; return; }
   const W=600,H=130,P=10;
   const mn=Math.min(0,...pts), mx=Math.max(...pts), rng=mx-mn||1;
-  const tx=i=>P+(i/(pts.length-1))*(W-P*2);
+  const tx=i=>P+(i/(Math.max(pts.length-1,1)))*(W-P*2);
   const ty=v=>H-P-((v-mn)/rng)*(H-P*2);
   const poly=pts.map((v,i)=>`${tx(i)},${ty(v)}`).join(' ');
   const area=`${tx(pts.length-1)},${ty(0)} ${tx(0)},${ty(0)}`;
-  const svg=document.getElementById('eq-svg');
   svg.innerHTML=`<defs>
     <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#00d97e" stop-opacity="0.32"/>
@@ -1357,9 +1506,10 @@ function renderEquity() {
   <text x="${tx(pts.indexOf(mx))}" y="${ty(mx)-7}" fill="#00d97e" font-size="8.5" font-family="JetBrains Mono" text-anchor="middle">+${mx.toFixed(1)}R</text>`;
 }
 
-function renderDonut() {
-  const C=238.8, tot=HIST.length;
-  const wd=wins.length/tot*C, ld=losses.length/tot*C, bd=bes.length/tot*C;
+function renderDonut(stats) {
+  const C=238.8, tot=stats.wins.length+stats.losses.length+stats.bes.length;
+  if (!tot) { document.getElementById('donut-pct').textContent='—'; return; }
+  const wd=stats.wins.length/tot*C, ld=stats.losses.length/tot*C, bd=stats.bes.length/tot*C;
   function set(id,dash,off,delay){
     const el=document.getElementById(id);
     el.style.strokeDasharray=`0 ${C}`;
@@ -1370,25 +1520,26 @@ function renderDonut() {
   set('donut-win',wd,0,0.5);
   set('donut-loss',ld,-wd,0.65);
   set('donut-be',bd,-(wd+ld),0.8);
-  document.getElementById('donut-pct').textContent=winRate+'%';
-  const aw=(wins.reduce((a,t)=>a+t.pnl_r,0)/wins.length*1000).toFixed(0);
-  const al=(losses.reduce((a,t)=>a+t.pnl_r,0)/losses.length*1000).toFixed(0);
-  const bw=Math.max(...wins.map(t=>t.pnl_r))*1000;
-  const wl=Math.min(...losses.map(t=>t.pnl_r))*1000;
+  document.getElementById('donut-pct').textContent=stats.winRate+'%';
+  const aw = stats.wins.length   ? (stats.wins.reduce((a,t)=>a+t.pnl_r,0)/stats.wins.length*1000).toFixed(0)   : '0';
+  const al = stats.losses.length ? (stats.losses.reduce((a,t)=>a+t.pnl_r,0)/stats.losses.length*1000).toFixed(0): '0';
+  const bw = stats.wins.length   ? Math.max(...stats.wins.map(t=>t.pnl_r))*1000   : 0;
+  const wl = stats.losses.length ? Math.min(...stats.losses.map(t=>t.pnl_r))*1000 : 0;
   document.getElementById('donut-stats').innerHTML=[
-    ['<span class="green">●</span> Wins',`<span class="green">${wins.length}</span>`],
-    ['<span class="red">●</span> Losses',`<span class="red">${losses.length}</span>`],
-    ['<span style="color:rgba(90,180,245,0.6)">●</span> Breakeven',`<span class="blue">${bes.length}</span>`],
-    ['Avg Win',`<span class="green">$${Number(aw).toLocaleString()}</span>`],
-    ['Avg Loss',`<span class="red">$${Math.abs(Number(al)).toLocaleString()}</span>`],
-    ['Largest Win',`<span class="green">$${bw.toLocaleString()}</span>`],
-    ['Largest Loss',`<span class="red">$${Math.abs(wl).toLocaleString()}</span>`]
+    ['<span class="green">●</span> Wins',    `<span class="green">${stats.wins.length}</span>`],
+    ['<span class="red">●</span> Losses',    `<span class="red">${stats.losses.length}</span>`],
+    ['<span style="color:rgba(90,180,245,0.6)">●</span> Breakeven',`<span class="blue">${stats.bes.length}</span>`],
+    ['Avg Win',       `<span class="green">$${Number(aw).toLocaleString()}</span>`],
+    ['Avg Loss',      `<span class="red">$${Math.abs(Number(al)).toLocaleString()}</span>`],
+    ['Largest Win',   `<span class="green">$${bw.toLocaleString()}</span>`],
+    ['Largest Loss',  `<span class="red">$${Math.abs(wl).toLocaleString()}</span>`]
   ].map(([l,v])=>`<div class="ds-row"><span class="ds-l">${l}</span><span class="ds-v">${v}</span></div>`).join('');
 }
 
-function renderPairs() {
-  const s=Object.entries(PAIR_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
-  const mx=Math.max(...s.map(([,v])=>Math.abs(v.pnl_r)));
+function renderPairs(pairStats) {
+  const s=Object.entries(pairStats).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
+  if (!s.length) { document.getElementById('pair-bars').innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">No trades in selected range</div>'; return; }
+  const mx=Math.max(...s.map(([,v])=>Math.abs(v.pnl_r)))||1;
   document.getElementById('pair-bars').innerHTML=s.map(([p,v])=>{
     const pos=v.pnl_r>=0, pct=(Math.abs(v.pnl_r)/mx*100).toFixed(1);
     const pc=pos?'var(--green)':'var(--red)';
@@ -1402,9 +1553,10 @@ function renderPairs() {
   setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach(el=>{el.style.width=el.dataset.w+'%';}); },350);
 }
 
-function renderSetups() {
-  const s=Object.entries(SETUP_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
-  const mx=Math.max(...s.map(([,v])=>v.pnl_r));
+function renderSetups(setupStats) {
+  const s=Object.entries(setupStats).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
+  if (!s.length) { document.getElementById('setup-grid').innerHTML=''; return; }
+  const mx=Math.max(...s.map(([,v])=>v.pnl_r))||1;
   document.getElementById('setup-grid').innerHTML=s.map(([nm,v])=>{
     const pos=v.pnl_r>=0;
     const pc=pos?'var(--green)':'var(--red)';
@@ -1424,8 +1576,10 @@ function renderSetups() {
   setTimeout(()=>{ document.querySelectorAll('.setup-bf').forEach(el=>{el.style.width=el.dataset.w+'%';}); },550);
 }
 
-function renderSessions() {
-  document.getElementById('sess-row').innerHTML=Object.entries(SESS_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r).map(([nm,v])=>{
+function renderSessions(sessStats) {
+  const s=Object.entries(sessStats).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
+  if (!s.length) { document.getElementById('sess-row').innerHTML=''; return; }
+  document.getElementById('sess-row').innerHTML=s.map(([nm,v])=>{
     const wc=v.wr>=65?'var(--green)':v.wr>=55?'var(--gold)':'var(--red)';
     const pc=v.pnl_r>=0?'var(--green)':'var(--red)';
     return `<div class="card sess-card">
@@ -1464,33 +1618,41 @@ function renderInsights() {
 let dashFilter='All';
 function renderDashTable(f='All') {
   dashFilter=f;
-  const data=f==='All'?HIST:HIST.filter(t=>{
-    if(f==='Wins') return t.result==='Win';
+  const allTrades = getActiveTrades();
+  const data = f==='All' ? allTrades : allTrades.filter(t=>{
+    if(f==='Wins')   return t.result==='Win';
     if(f==='Losses') return t.result==='Loss';
-    if(f==='BE') return t.result==='Breakeven';
-    if(f==='Live') return t.type==='Live';
-    if(f==='FT') return t.type!=='Live';
+    if(f==='BE')     return t.result==='Breakeven';
+    if(f==='Live')   return t.type==='Live';
+    if(f==='FT')     return t.type && (t.type.includes('Test')||t.type.includes('BT')||t.type.includes('FT'));
     return true;
   });
+  const w=allTrades.filter(t=>t.result==='Win');
+  const l=allTrades.filter(t=>t.result==='Loss');
+  const b=allTrades.filter(t=>t.result==='Breakeven');
+  const live=allTrades.filter(t=>t.type==='Live');
+  const ft=allTrades.filter(t=>t.type&&(t.type.includes('Test')||t.type.includes('BT')||t.type.includes('FT')));
   const dcs=['All','Wins','Losses','BE','Live','FT'];
   document.getElementById('dash-pills').innerHTML=dcs.map(c=>`
     <button class="pill ${c===dashFilter?'on':''}" onclick="renderDashTable('${c}')">${c}<span class="pill-n">${
-      c==='All'?HIST.length:c==='Wins'?wins.length:c==='Losses'?losses.length:c==='BE'?bes.length:c==='Live'?HIST.filter(t=>t.type==='Live').length:HIST.filter(t=>t.type!=='Live').length
+      c==='All'?allTrades.length:c==='Wins'?w.length:c==='Losses'?l.length:c==='BE'?b.length:c==='Live'?live.length:ft.length
     }</span></button>`).join('');
-  document.getElementById('dash-tbody').innerHTML=data.map(t=>{
+  document.getElementById('dash-tbody').innerHTML=data.map((t,i)=>{
     const rc=t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
     const pc=t.pnl_r>0?'var(--green)':t.pnl_r<0?'var(--red)':'var(--text3)';
     const dc=t.direction==='Long'?'var(--green)':t.direction==='Short'?'var(--red)':'var(--text3)';
-    const tc=t.type==='Live'?'':t.type.includes('Back')?'<span class="badge bft">BT</span>':'<span class="badge bft">FT</span>';
+    const rr=typeof t.rr==='number'?t.rr:parseFloat(t.rr)||0;
+    const tc=t.type==='Live'?'':t.type&&t.type.includes('Back')?'<span class="badge bft">BT</span>':'<span class="badge bft">FT</span>';
+    const newTag=t._src==='manual'?'<span style="font-size:8.5px;color:var(--blue-lt);font-family:var(--mono);margin-left:3px">NEW</span>':'';
     return `<tr>
-      <td class="td-dim">${t.id}</td>
+      <td class="td-dim">${i+1}${newTag}</td>
       <td class="td-num" style="font-size:10.5px">${t.date}</td>
       <td><strong>${t.pair}</strong></td>
-      <td style="color:var(--text2);font-size:11px">${t.session}</td>
+      <td style="color:var(--text2);font-size:11px">${t.session||'—'}</td>
       <td style="font-size:11px;font-weight:700;color:${dc}">${t.direction||'—'}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:120px;white-space:normal">${t.setup}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:120px;white-space:normal">${t.setup||'—'}</td>
       <td>${tc||`<span style="font-family:var(--mono);font-size:10px;color:var(--text3)">Live</span>`}</td>
-      <td class="td-num">${t.rr?t.rr+'R':'—'}</td>
+      <td class="td-num">${rr?rr+'R':'—'}</td>
       <td class="td-num" style="color:${pc};font-weight:700">${t.pnl_r>0?'+':''}${t.pnl_r}R</td>
       <td class="td-num" style="color:${pc}">${t.pnl_r!==0?(t.pnl_r>0?'+$':'-$')+Math.abs(t.pnl_r*1000).toLocaleString():'$0'}</td>
       <td><span class="badge ${rc}">${t.result}</span></td>
@@ -1630,6 +1792,7 @@ function submitTrade() {
   document.getElementById('form-success').classList.add('show');
   setTimeout(()=>{ document.getElementById('form-success').classList.remove('show'); },3000);
   clearForm();
+  renderDashboard(); // recalculate everything immediately
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1979,14 +2142,7 @@ function escHtml(s) {
    INIT
 ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  renderKPIs();
-  renderEquity();
-  renderDonut();
-  renderPairs();
-  renderSetups();
-  renderSessions();
-  renderInsights();
-  renderDashTable();
+  renderDashboard();
   setDefaultDatetime();
 });
 
@@ -2067,10 +2223,7 @@ function handleImport(e) {
   reader.readAsText(file);
 }
 
-// Reinit dashboard animations when switching back to it
-document.querySelector('[data-page="dashboard"]').addEventListener('click', () => {
-  setTimeout(() => { renderDashTable(dashFilter); }, 50);
-});
+// Dashboard re-renders are handled by goTo() above
 document.querySelector('[data-page="new-trade"]').addEventListener('click', () => {
   setDefaultDatetime();
 });
