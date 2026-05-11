@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Trading Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════════════ */
+:root {
+  --bg:        #080c18;
+  --bg2:       #0d1225;
+  --bg3:       #111827;
+  --surface:   rgba(255,255,255,0.038);
+  --surface2:  rgba(255,255,255,0.065);
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.14);
+  --green:     #00d97e;
+  --green-dim: rgba(0,217,126,0.10);
+  --green-glow:rgba(0,217,126,0.22);
+  --red:       #f04f4f;
+  --red-dim:   rgba(240,79,79,0.10);
+  --blue:      #3b82f6;
+  --blue-lt:   #60a5fa;
+  --blue-dim:  rgba(59,130,246,0.12);
+  --gold:      #f0b429;
+  --gold-dim:  rgba(240,180,41,0.10);
+  --purple:    #a78bfa;
+  --text:      #dde2f0;
+  --text2:     rgba(221,226,240,0.58);
+  --text3:     rgba(221,226,240,0.35);
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Outfit', sans-serif;
+  --r:         14px;
+  --rsm:       9px;
+  --nav-h:     56px;
+}
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+input, select, textarea, button { font-family: var(--sans); }
+button { cursor: pointer; }
+
+/* ════════════════════════════════════════════════
+   AMBIENT GLOWS
+════════════════════════════════════════════════ */
+.ambients { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.amb { position:absolute; border-radius:50%; filter:blur(130px); }
+.amb1 { width:700px;height:700px;background:#1a4fff;top:-250px;left:-200px;opacity:0.10; }
+.amb2 { width:500px;height:500px;background:#00d97e;bottom:5%;right:-150px;opacity:0.09; }
+.amb3 { width:350px;height:350px;background:#f0b429;top:45%;left:35%;opacity:0.05; }
+
+/* ════════════════════════════════════════════════
+   NAV BAR
+════════════════════════════════════════════════ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  background: rgba(8,12,24,0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 0;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-right: 28px;
+}
+.nav-logo-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #f0b429, #f06429);
+  border-radius: 7px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 14px; flex-shrink:0;
+}
+.nav-logo-text { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.nav-logo-sync { font-size: 10px; color: var(--green); font-family: var(--mono); }
+.nav-tabs { display:flex; align-items:center; gap:2px; overflow-x:auto; flex:1; }
+.nav-tabs::-webkit-scrollbar { display:none; }
+.nav-tab {
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--rsm);
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+.nav-tab:hover { color: var(--text2); background: var(--surface); }
+.nav-tab.active {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ════════════════════════════════════════════════
+   PAGE SYSTEM
+════════════════════════════════════════════════ */
+.page { display:none; position:relative; z-index:1; }
+.page.active { display:block; }
+
+/* ════════════════════════════════════════════════
+   SHARED LAYOUT
+════════════════════════════════════════════════ */
+.wrap { max-width:1320px; margin:0 auto; padding:0 24px 80px; }
+.wrap-narrow { max-width:900px; margin:0 auto; padding:0 24px 80px; }
+
+.page-header { padding:36px 0 28px; }
+.page-title { font-size:clamp(20px,3vw,28px); font-weight:800; letter-spacing:-0.02em; }
+.page-sub { font-size:12px; color:var(--text3); font-family:var(--mono); margin-top:5px; }
+
+/* Glass card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);
+}
+.card:hover { border-color:var(--border2); }
+
+/* Section label */
+.sec-label {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+
+/* Stagger animations */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fu { animation: fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+.d0{animation-delay:0.04s} .d1{animation-delay:0.10s} .d2{animation-delay:0.16s}
+.d3{animation-delay:0.22s} .d4{animation-delay:0.28s} .d5{animation-delay:0.34s}
+.d6{animation-delay:0.40s} .d7{animation-delay:0.46s} .d8{animation-delay:0.52s}
+.d9{animation-delay:0.58s} .d10{animation-delay:0.64s}
+
+/* Colors */
+.green  { color:var(--green); }
+.red    { color:var(--red); }
+.blue   { color:var(--blue-lt); }
+.gold   { color:var(--gold); }
+
+/* ════════════════════════════════════════════════
+   PAGE 1 — DASHBOARD
+════════════════════════════════════════════════ */
+/* KPI row */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:12px; margin-bottom:16px; }
+.kpi { padding:20px 18px 18px; }
+.kpi-lbl { font-size:9.5px; font-family:var(--mono); letter-spacing:0.16em; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
+.kpi-val { font-family:var(--mono); font-size:clamp(20px,2.8vw,28px); font-weight:700; line-height:1; margin-bottom:7px; }
+.kpi-sub { font-family:var(--mono); font-size:10.5px; color:var(--text2); }
+.kpi.g { border-color:rgba(0,217,126,0.2); }
+.kpi.g::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(0,217,126,0.07),transparent 70%); pointer-events:none; }
+.kpi.au { border-color:rgba(240,180,41,0.22); }
+.kpi.au::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(240,180,41,0.08),transparent 70%); pointer-events:none; }
+.kpi.b { border-color:rgba(59,130,246,0.2); }
+.kpi.b::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(59,130,246,0.07),transparent 70%); pointer-events:none; }
+
+/* Mid row */
+.mid-row { display:grid; grid-template-columns:1fr 1.28fr; gap:12px; margin-bottom:12px; }
+@media(max-width:760px){ .mid-row{grid-template-columns:1fr;} }
+.eq-card { padding:22px 22px 18px; }
+.eq-card h3 { font-size:12.5px; font-weight:600; margin-bottom:3px; }
+.eq-sub { font-size:10.5px; color:var(--text3); margin-bottom:16px; font-family:var(--mono); }
+#eq-svg { width:100%; height:130px; display:block; }
+.donut-card { padding:22px; }
+.donut-card h3 { font-size:12.5px; font-weight:600; margin-bottom:14px; }
+.donut-inner { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+.donut-wrap { position:relative; flex-shrink:0; width:130px; height:130px; }
+.donut-wrap svg { width:130px; height:130px; transform:rotate(-90deg); }
+.donut-ctr { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.donut-pct { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--green); }
+.donut-lbl { font-size:9px; color:var(--text3); font-family:var(--mono); letter-spacing:0.1em; }
+.donut-stats { flex:1; min-width:130px; }
+.ds-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:11.5px; }
+.ds-row:last-child { border-bottom:none; }
+.ds-l { color:var(--text2); }
+.ds-v { font-family:var(--mono); font-weight:600; }
+
+/* Pair bars */
+.pair-card { padding:22px; margin-bottom:12px; }
+.pair-card h3 { font-size:12.5px; font-weight:600; margin-bottom:18px; }
+.pair-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.pair-nm { font-family:var(--mono); font-size:11.5px; font-weight:600; width:68px; flex-shrink:0; }
+.bar-track { flex:1; height:9px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:6px; width:0%; transition:width 1s cubic-bezier(0.16,1,0.3,1); }
+.bar-fill.g { background:linear-gradient(90deg,rgba(0,217,126,0.5),var(--green)); }
+.bar-fill.r { background:linear-gradient(90deg,rgba(240,79,79,0.5),var(--red)); }
+.pair-pnl { font-family:var(--mono); font-size:11.5px; font-weight:700; width:65px; text-align:right; flex-shrink:0; }
+.pair-meta { font-family:var(--mono); font-size:9.5px; color:var(--text3); width:50px; text-align:right; flex-shrink:0; }
+
+/* Setup grid */
+.setup-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:12px; }
+.setup-card { padding:16px 16px 14px; }
+.setup-nm { font-size:11.5px; font-weight:600; margin-bottom:10px; line-height:1.3; }
+.setup-sr { display:flex; justify-content:space-between; align-items:baseline; }
+.setup-pnl { font-family:var(--mono); font-size:17px; font-weight:700; }
+.setup-rt { text-align:right; }
+.setup-wr { font-family:var(--mono); font-size:11px; }
+.setup-wl { font-family:var(--mono); font-size:9.5px; color:var(--text3); margin-top:2px; }
+.setup-bar { height:3px; background:rgba(255,255,255,0.05); border-radius:3px; margin-top:10px; overflow:hidden; }
+.setup-bf { height:100%; border-radius:3px; width:0%; transition:width 1.1s cubic-bezier(0.16,1,0.3,1); }
+
+/* Session cards */
+.sess-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:10px; margin-bottom:12px; }
+.sess-card { padding:18px; }
+.sess-nm { font-size:10px; font-family:var(--mono); letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); margin-bottom:10px; display:flex; align-items:center; gap:7px; }
+.sess-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.sess-wr { font-family:var(--mono); font-size:28px; font-weight:700; line-height:1; margin-bottom:8px; }
+.sess-det { font-family:var(--mono); font-size:9.5px; color:var(--text2); display:flex; flex-direction:column; gap:2px; }
+.sess-pnl { font-family:var(--mono); font-size:12px; font-weight:600; margin-top:7px; }
+
+/* Insights */
+.ins-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:12px; margin-bottom:12px; }
+.ins-card { padding:20px; }
+.ins-hdr { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+.ins-ico { font-size:22px; flex-shrink:0; line-height:1; }
+.ins-type { font-size:9.5px; font-family:var(--mono); letter-spacing:0.14em; text-transform:uppercase; }
+.ins-title { font-size:13.5px; font-weight:700; line-height:1.2; margin-top:3px; }
+.ins-body { font-size:12px; color:var(--text2); line-height:1.65; margin-bottom:10px; }
+.ins-action { font-size:11px; font-weight:600; padding:7px 11px; border-radius:var(--rsm); display:inline-block; }
+.ins-action.g  { background:var(--green-dim); color:var(--green); }
+.ins-action.r  { background:var(--red-dim); color:var(--red); }
+.ins-action.b  { background:var(--blue-dim); color:var(--blue-lt); }
+.ins-action.au { background:var(--gold-dim); color:var(--gold); }
+
+/* Table */
+.tbl-card { padding:22px; margin-bottom:12px; }
+.tbl-card h3 { font-size:12.5px; font-weight:600; margin-bottom:16px; }
+.tbl-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:11.5px; }
+thead th { font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); padding:0 9px 10px; text-align:left; white-space:nowrap; border-bottom:1px solid var(--border); }
+tbody tr { border-bottom:1px solid rgba(255,255,255,0.035); transition:background 0.15s; }
+tbody tr:hover { background:rgba(255,255,255,0.028); }
+tbody tr:last-child { border-bottom:none; }
+tbody td { padding:10px 9px; white-space:nowrap; }
+.td-num { font-family:var(--mono); }
+.td-dim { color:var(--text3); font-family:var(--mono); font-size:10px; }
+.badge { font-family:var(--mono); font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:20px; letter-spacing:0.07em; text-transform:uppercase; display:inline-block; }
+.bw { background:var(--green-dim); color:var(--green); border:1px solid rgba(0,217,126,0.25); }
+.bl { background:var(--red-dim);   color:var(--red);   border:1px solid rgba(240,79,79,0.25); }
+.bb { background:rgba(255,255,255,0.055); color:var(--text2); border:1px solid var(--border); }
+.bft { background:var(--blue-dim); color:var(--blue-lt); border:1px solid rgba(59,130,246,0.2); font-size:8.5px; }
+.td-note { max-width:220px; white-space:normal; color:var(--text2); font-size:10.5px; line-height:1.42; }
+
+/* filter pills */
+.pills { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px; }
+.pill { font-family:var(--mono); font-size:9.5px; letter-spacing:0.07em; padding:5px 11px; border-radius:20px; border:1px solid var(--border); color:var(--text3); background:transparent; transition:all 0.18s; }
+.pill:hover, .pill.on { border-color:var(--blue-lt); color:var(--blue-lt); background:var(--blue-dim); }
+.pill-n { opacity:0.6; margin-left:3px; }
+
+/* ════════════════════════════════════════════════
+   PAGE 2 — NEW TRADE FORM
+════════════════════════════════════════════════ */
+.form-wrap { max-width:960px; margin:0 auto; padding:0 24px 80px; }
+.form-page-hdr { padding:32px 0 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.form-page-title { font-size:22px; font-weight:800; letter-spacing:-0.015em; }
+
+.form-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); padding:28px; margin-bottom:14px; }
+.form-section-label {
+  font-size:9px;
+  font-family:var(--mono);
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:20px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+.form-grid { display:grid; gap:18px; }
+.fg2 { grid-template-columns:repeat(2,1fr); }
+.fg3 { grid-template-columns:repeat(3,1fr); }
+.fg4 { grid-template-columns:repeat(4,1fr); }
+.fg1 { grid-template-columns:1fr; }
+@media(max-width:680px) { .fg2,.fg3,.fg4 { grid-template-columns:1fr; } }
+@media(max-width:900px) { .fg3,.fg4 { grid-template-columns:repeat(2,1fr); } }
+
+.field { display:flex; flex-direction:column; gap:7px; }
+.field-label {
+  font-size:11.5px;
+  font-weight:500;
+  color:var(--text2);
+}
+.field-label .req { color:var(--red); margin-left:2px; }
+.field-hint { font-size:10px; color:var(--text3); font-family:var(--mono); margin-top:-3px; }
+
+/* Inputs */
+.fi {
+  width:100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--rsm);
+  color: var(--text);
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.fi:focus { border-color: rgba(59,130,246,0.55); background: rgba(59,130,246,0.05); }
+.fi::placeholder { color: var(--text3); }
+.fi option { background: #1a2035; }
+
+textarea.fi { resize: vertical; min-height: 80px; line-height: 1.55; }
+select.fi { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff44' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; cursor:pointer; }
+
+/* Tag multi-select */
+.tag-group { display:flex; flex-wrap:wrap; gap:7px; }
+.tag-pill {
+  font-size:11.5px;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.12);
+  color:var(--text2);
+  background:transparent;
+  cursor:pointer;
+  transition:all 0.18s;
+  user-select:none;
+}
+.tag-pill:hover { border-color:rgba(59,130,246,0.4); color:var(--blue-lt); }
+.tag-pill.on { background:var(--blue); border-color:var(--blue); color:#fff; font-weight:600; }
+.tag-pill.on-green { background:var(--green-dim); border-color:rgba(0,217,126,0.4); color:var(--green); }
+
+/* Conditional field */
+.cond-field { display:none; }
+.cond-field.show { display:flex; }
+
+/* Submit button */
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--rsm);
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+}
+.btn-primary:hover { background:#2563eb; transform:translateY(-1px); box-shadow:0 6px 28px rgba(59,130,246,0.45); }
+.btn-primary:active { transform:translateY(0); }
+
+.btn-ghost {
+  background:transparent;
+  color:var(--text3);
+  border:1px solid var(--border);
+  border-radius:var(--rsm);
+  padding:12px 20px;
+  font-size:13px;
+  font-weight:500;
+  transition:all 0.2s;
+}
+.btn-ghost:hover { border-color:var(--border2); color:var(--text2); background:var(--surface); }
+
+.form-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:4px; }
+.form-success { display:none; align-items:center; gap:8px; font-size:13px; color:var(--green); font-weight:600; }
+.form-success.show { display:flex; }
+
+/* Toggle link */
+.toggle-link { font-size:12px; color:var(--blue-lt); text-decoration:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; background:none; border:none; padding:0; margin-top:-4px; }
+.toggle-link:hover { text-decoration:underline; }
+.extra-fields { display:none; }
+.extra-fields.open { display:contents; }
+
+/* R/Result badge preview */
+.result-preview { display:flex; align-items:center; gap:8px; margin-top:8px; }
+.rp-badge { font-family:var(--mono); font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; letter-spacing:0.06em; text-transform:uppercase; }
+
+/* ════════════════════════════════════════════════
+   PAGE 3 — TRADES LOG
+════════════════════════════════════════════════ */
+.trades-hdr-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.trades-count { font-family:var(--mono); font-size:11px; color:var(--text3); }
+.empty-state { text-align:center; padding:60px 24px; color:var(--text3); font-size:13px; }
+.empty-state .es-ico { font-size:40px; margin-bottom:12px; }
+.btn-danger { background:var(--red-dim); color:var(--red); border:1px solid rgba(240,79,79,0.25); border-radius:var(--rsm); padding:6px 12px; font-size:11px; font-family:var(--mono); transition:all 0.18s; }
+.btn-danger:hover { background:rgba(240,79,79,0.2); }
+
+/* ════════════════════════════════════════════════
+   PLACEHOLDER PAGES
+════════════════════════════════════════════════ */
+.coming-soon {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:60vh; gap:16px; text-align:center;
+}
+.cs-icon { font-size:52px; opacity:0.4; }
+.cs-title { font-size:22px; font-weight:700; opacity:0.55; }
+.cs-sub { font-size:13px; color:var(--text3); max-width:320px; }
+
+/* ════════════════════════════════════════════════
+   MISC UTILS
+════════════════════════════════════════════════ */
+.disclaimer { text-align:center; font-family:var(--mono); font-size:9.5px; color:var(--text3); padding-top:28px; border-top:1px solid var(--border); margin-top:12px; }
+
+@keyframes dash { to { stroke-dashoffset:0; } }
+@media(max-width:600px) { .kpi-row{grid-template-columns:repeat(2,1fr);} .setup-grid{grid-template-columns:repeat(2,1fr);} .ins-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="ambients">
+  <div class="amb amb1"></div>
+  <div class="amb amb2"></div>
+  <div class="amb amb3"></div>
+</div>
+
+<!-- ════════════ NAV ════════════ -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">📈</div>
+    <div>
+      <div class="nav-logo-text">Gold Trading Journal</div>
+      <div class="nav-logo-sync">✓ Synced</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-page="dashboard">Dashboard</button>
+    <button class="nav-tab" data-page="new-trade">New trade</button>
+    <button class="nav-tab" data-page="trades">Trades</button>
+    <button class="nav-tab" data-page="pre-trade">Pre-trade</button>
+    <button class="nav-tab" data-page="edge-finder">Edge finder</button>
+    <button class="nav-tab" data-page="execution">Execution</button>
+    <button class="nav-tab" data-page="monte-carlo">Monte Carlo</button>
+    <button class="nav-tab" data-page="settings">Settings</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: DASHBOARD
+════════════════════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+<div class="wrap">
+  <header class="page-header fu d0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">Performance Dashboard</div>
+        <div class="page-sub">Apr 2025 – May 2026 &nbsp;·&nbsp; Historical data from Notion export &nbsp;·&nbsp; 69 trades</div>
+      </div>
+      <div style="background:var(--gold-dim);border:1px solid rgba(240,180,41,0.28);color:var(--gold);font-family:var(--mono);font-size:10px;padding:5px 13px;border-radius:20px">1R = $1,000 equiv.</div>
+    </div>
+  </header>
+
+  <div class="sec-label fu d1">Key Metrics</div>
+  <div class="kpi-row fu d1" id="kpi-row"></div>
+
+  <div class="mid-row fu d2">
+    <div class="card eq-card">
+      <h3>Equity Curve</h3>
+      <div class="eq-sub">Cumulative R · all trades in sequence</div>
+      <svg id="eq-svg" viewBox="0 0 600 130" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="card donut-card">
+      <h3>Win / Loss Distribution</h3>
+      <div class="donut-inner">
+        <div class="donut-wrap">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="11"/>
+            <circle id="donut-win"  cx="50" cy="50" r="38" fill="none" stroke="#00d97e" stroke-width="11" stroke-dasharray="0 238.8" stroke-linecap="round"/>
+            <circle id="donut-loss" cx="50" cy="50" r="38" fill="none" stroke="#f04f4f" stroke-width="11" stroke-dasharray="0 238.8" stroke-linecap="round"/>
+            <circle id="donut-be"   cx="50" cy="50" r="38" fill="none" stroke="rgba(90,180,245,0.38)" stroke-width="11" stroke-dasharray="0 238.8" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-ctr">
+            <span class="donut-pct" id="donut-pct">—</span>
+            <span class="donut-lbl">WIN RATE</span>
+          </div>
+        </div>
+        <div class="donut-stats" id="donut-stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label fu d3">P&amp;L by Instrument</div>
+  <div class="card pair-card fu d3" id="pair-sec">
+    <h3>Net R by Pair — sorted highest to lowest</h3>
+    <div id="pair-bars"></div>
+  </div>
+
+  <div class="sec-label fu d4">Setup Performance</div>
+  <div class="setup-grid fu d4" id="setup-grid"></div>
+
+  <div class="sec-label fu d5">Session Breakdown</div>
+  <div class="sess-row fu d5" id="sess-row"></div>
+
+  <div class="sec-label fu d6">Actionable Insights</div>
+  <div class="ins-grid fu d6" id="ins-grid"></div>
+
+  <div class="sec-label fu d7">Historical Trade Log</div>
+  <div class="card tbl-card fu d7">
+    <h3>All Trades — Notion Import</h3>
+    <div class="pills" id="dash-pills"></div>
+    <div class="tbl-scroll"><table id="dash-table"><thead><tr>
+      <th>#</th><th>Date</th><th>Pair</th><th>Session</th><th>Dir.</th>
+      <th>Setup</th><th>Type</th><th>R Target</th><th>P&amp;L (R)</th><th>P&amp;L ($)</th>
+      <th>Result</th><th>Notes</th>
+    </tr></thead><tbody id="dash-tbody"></tbody></table></div>
+  </div>
+
+  <div class="disclaimer fu d8">All $ figures illustrative · 1R = $1,000 · Data imported from Notion trading journal</div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: NEW TRADE
+════════════════════════════════════════════════ -->
+<div class="page" id="page-new-trade">
+<div class="form-wrap">
+
+  <div class="form-page-hdr fu d0">
+    <div class="form-page-title">Log a new trade</div>
+    <button class="btn-ghost" onclick="clearForm()">Clear</button>
+  </div>
+
+  <!-- TRADE BASICS -->
+  <div class="form-card fu d1">
+    <div class="form-section-label">Trade Basics</div>
+    <div class="form-grid fg4">
+      <div class="field">
+        <label class="field-label">Entry date &amp; time<span class="req">*</span></label>
+        <input type="datetime-local" class="fi" id="f-datetime">
+      </div>
+      <div class="field">
+        <label class="field-label">Pair<span class="req">*</span></label>
+        <select class="fi" id="f-pair">
+          <option value="">Select pair…</option>
+          <option>AUD/USD</option>
+          <option>Gold</option>
+          <option>GBP/USD</option>
+          <option>USD/JPY</option>
+          <option>DAX</option>
+          <option>NAS100</option>
+          <option>EUR/USD</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Trade type<span class="req">*</span></label>
+        <select class="fi" id="f-type">
+          <option value="">Select…</option>
+          <option>Live</option>
+          <option>Forward Test</option>
+          <option>Back Test</option>
+          <option>Back Test, Forward Test</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Direction<span class="req">*</span></label>
+        <select class="fi" id="f-direction">
+          <option value="">Select…</option>
+          <option>Long</option>
+          <option>Short</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid fg3" style="margin-top:18px">
+      <div class="field">
+        <label class="field-label">Session<span class="req">*</span></label>
+        <select class="fi" id="f-session">
+          <option value="">Select session…</option>
+          <option>London</option>
+          <option>Asia</option>
+          <option>New York</option>
+          <option>Asia, London</option>
+          <option>London, New York</option>
+          <option>Sydney</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Pro/Counter Trend</label>
+        <select class="fi" id="f-protrend">
+          <option value="">Select…</option>
+          <option>Pro Trend 1M/3M/5M, Pro Trend 15M/30M/1HR, Pro Trend 4HR/Daily/Weekly, Trending</option>
+          <option>Pro Trend 15M/30M/1HR, Pro Trend 4HR/Daily/Weekly, Trending</option>
+          <option>Counter Trend 1M/3M/5M</option>
+          <option>Counter Trend 15M/30M</option>
+          <option>Counter Trend 4HR/Daily</option>
+          <option>Trending</option>
+          <option>Ranging</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Trade duration</label>
+        <select class="fi" id="f-duration">
+          <option value="">Select…</option>
+          <option>UNDER 1HR</option>
+          <option>1-2HRS</option>
+          <option>2-3HRS</option>
+          <option>3-4HRS</option>
+          <option>4-8HRS</option>
+          <option>8HR+</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="form-card fu d2">
+    <div class="form-section-label">Setup</div>
+    <div class="form-grid fg2">
+      <div class="field">
+        <label class="field-label">Entry model<span class="req">*</span></label>
+        <select class="fi" id="f-model">
+          <option value="">Select entry model…</option>
+          <option>NC Model.</option>
+          <option>NC Model + Sweep</option>
+          <option>Internal Protected Structure Continuation.</option>
+          <option>Internal Protected Structure Continuation + Sweep</option>
+          <option>Internal FBoS Continuation, Internal Protected Structure Continuation.</option>
+          <option>External Protected Structure Continuation + Sweep, Internal Protected Structure Continuation + Sweep</option>
+          <option>Internal Protected Structure Continuation + Sweep, Joker Sweep</option>
+          <option>Joker Sweep</option>
+          <option>Besh Strategy</option>
+          <option>Besh Strategy, Internal Protected Structure Continuation + Sweep</option>
+          <option>Besh Strategy, Internal Protected Structure Continuation.</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Entry type</label>
+        <select class="fi" id="f-entry-type">
+          <option value="">Select…</option>
+          <option>Confirmed</option>
+          <option>Risk Entry</option>
+          <option>Signal (External)</option>
+          <option>Re-entry</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid fg2" style="margin-top:18px">
+      <div class="field">
+        <label class="field-label">Entry timeframe</label>
+        <select class="fi" id="f-tf">
+          <option value="">Select TF…</option>
+          <option>1M</option>
+          <option>3M</option>
+          <option>5M</option>
+          <option>15M</option>
+          <option>30M</option>
+          <option>1HR</option>
+          <option>4HR</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Execution / Bias</label>
+        <select class="fi" id="f-execution">
+          <option value="">Select…</option>
+          <option>Right Bias Right Execution</option>
+          <option>Right Bias Wrong Execution</option>
+          <option>Wrong Bias Right Execution</option>
+          <option>Wrong Bias Wrong Execution</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:18px">
+      <label class="field-label">HTF / MTF / LTF conditions <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
+      <div class="tag-group" id="tags-conditions">
+        <span class="tag-pill" data-val="Trending HTF">Trending HTF</span>
+        <span class="tag-pill" data-val="Ranging HTF">Ranging HTF</span>
+        <span class="tag-pill" data-val="Trending MTF">Trending MTF</span>
+        <span class="tag-pill" data-val="Ranging MTF">Ranging MTF</span>
+        <span class="tag-pill" data-val="Trending LTF">Trending LTF</span>
+        <span class="tag-pill" data-val="Ranging LTF">Ranging LTF</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:18px">
+      <label class="field-label">Trade confluences <span style="color:var(--text3);font-weight:400">(select all present)</span></label>
+      <div class="tag-group" id="tags-confluences">
+        <span class="tag-pill" data-val="Sweep">Sweep</span>
+        <span class="tag-pill" data-val="Divergence">Divergence</span>
+        <span class="tag-pill" data-val="NC">NC</span>
+        <span class="tag-pill" data-val="Pro-Trend">Pro-Trend</span>
+        <span class="tag-pill" data-val="Double Confirmation">Double Confirmation</span>
+        <span class="tag-pill" data-val="HTF Aligned">HTF Aligned</span>
+        <span class="tag-pill" data-val="MTF Aligned">MTF Aligned</span>
+        <span class="tag-pill" data-val="DXY Alignment">DXY Alignment</span>
+        <span class="tag-pill" data-val="3M/5M IPL/H">3M/5M IPL/H</span>
+        <span class="tag-pill" data-val="3M/5M BoS">3M/5M BoS</span>
+        <span class="tag-pill" data-val="15M IPL/H">15M IPL/H</span>
+        <span class="tag-pill" data-val="15M BoS">15M BoS</span>
+        <span class="tag-pill" data-val="Rejection Candle">Rejection Candle</span>
+        <span class="tag-pill" data-val="Continuation">Continuation</span>
+        <span class="tag-pill" data-val="FBoS">FBoS</span>
+        <span class="tag-pill" data-val="Counter Trend">Counter Trend</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="form-card fu d3">
+    <div class="form-section-label">Result</div>
+    <div class="form-grid fg4">
+      <div class="field">
+        <label class="field-label">Outcome<span class="req">*</span></label>
+        <select class="fi" id="f-result" onchange="onResultChange()">
+          <option value="">Select…</option>
+          <option>Win</option>
+          <option>Loss</option>
+          <option>Breakeven</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Result method</label>
+        <select class="fi" id="f-result-method">
+          <option value="">Select…</option>
+          <option>Full TP</option>
+          <option>Early Close (Ended up being a win)</option>
+          <option>Early Close (Ended up being a loss)</option>
+          <option>Breakeven</option>
+          <option>Win</option>
+          <option>Loss</option>
+          <option>Partial TP</option>
+          <option>mechanical tp</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">R multiple<span class="req">*</span></label>
+        <input type="text" class="fi" id="f-rr" placeholder="e.g. 2.5, -1, 0">
+      </div>
+      <div class="field">
+        <label class="field-label">Target</label>
+        <input type="text" class="fi" id="f-target" placeholder="e.g. Weak 15M/30M High">
+      </div>
+    </div>
+
+    <!-- Conditional: reason for loss -->
+    <div class="field cond-field" id="cf-reason" style="margin-top:18px">
+      <label class="field-label">Reason for loss</label>
+      <input type="text" class="fi" id="f-reason" placeholder="Why did this trade lose?">
+    </div>
+  </div>
+
+  <!-- RISK & EXECUTION -->
+  <div class="form-card fu d4">
+    <div class="form-section-label">Risk &amp; Execution</div>
+    <div class="form-grid fg3">
+      <div class="field">
+        <label class="field-label">Account risk %<span class="req">*</span></label>
+        <input type="text" class="fi" id="f-risk" placeholder="e.g. 1, 0.5, 1.5">
+      </div>
+      <div class="field">
+        <label class="field-label">News context<span class="req">*</span></label>
+        <select class="fi" id="f-news">
+          <option value="">Select…</option>
+          <option>No news</option>
+          <option>News within 1hr</option>
+          <option>News within 30min</option>
+          <option>Post-news entry</option>
+          <option>High impact news day</option>
+          <option>NA</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Volatility regime</label>
+        <select class="fi" id="f-vol">
+          <option value="">Select…</option>
+          <option>Normal</option>
+          <option>Low volatility</option>
+          <option>High volatility</option>
+          <option>Extreme</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button class="toggle-link" onclick="toggleExtra()" id="extra-toggle">
+        <span id="extra-toggle-icon">+</span> Show planned-vs-actual fields (recommended)
+      </button>
+    </div>
+
+    <div class="extra-fields form-grid fg2" id="extra-fields" style="margin-top:18px">
+      <div class="field">
+        <label class="field-label">Stop loss PIPs + covering</label>
+        <input type="text" class="fi" id="f-sl" placeholder="e.g. Covering Protected Structure by +2 PIPs">
+      </div>
+      <div class="field">
+        <label class="field-label">Entry + confirmation</label>
+        <input type="text" class="fi" id="f-entry-conf" placeholder="e.g. Rejection Candle 5M">
+      </div>
+      <div class="field">
+        <label class="field-label">Breakeven criteria</label>
+        <input type="text" class="fi" id="f-be" placeholder="e.g. Breakeven at first structure break">
+      </div>
+      <div class="field">
+        <label class="field-label">Re-entry criteria</label>
+        <input type="text" class="fi" id="f-reentry" placeholder="e.g. NA / Rejection + second candle">
+      </div>
+      <div class="field">
+        <label class="field-label">1M / 3M / 5M break</label>
+        <input type="text" class="fi" id="f-lf-break" placeholder="e.g. 5M">
+      </div>
+      <div class="field">
+        <label class="field-label">15M / 30M / 1HR break</label>
+        <input type="text" class="fi" id="f-mf-break" placeholder="e.g. 15M">
+      </div>
+    </div>
+  </div>
+
+  <!-- RULES & PSYCHOLOGY -->
+  <div class="form-card fu d5">
+    <div class="form-section-label">Rules &amp; Psychology</div>
+    <div class="form-grid fg2">
+      <div class="field">
+        <label class="field-label">Did I follow my rules?<span class="req">*</span></label>
+        <select class="fi" id="f-rules" onchange="onRulesChange()">
+          <option value="">Select…</option>
+          <option value="Y: fully">Yes, fully</option>
+          <option value="Y: mostly">Yes, mostly</option>
+          <option value="N: partial">No — partial break</option>
+          <option value="N: broke rules">No — broke rules</option>
+        </select>
+      </div>
+      <div class="field cond-field" id="cf-rules-reason">
+        <label class="field-label">Reason rules were broken</label>
+        <input type="text" class="fi" id="f-rules-reason" placeholder="What rule did you break?">
+      </div>
+      <div class="field">
+        <label class="field-label">Emotional state during trade</label>
+        <select class="fi" id="f-emotion">
+          <option value="">Select…</option>
+          <option>Calm and patient</option>
+          <option>Confident</option>
+          <option>Slightly rushed</option>
+          <option>Anxious</option>
+          <option>FOMO</option>
+          <option>Frustrated</option>
+          <option>Overconfident</option>
+          <option>Stressed</option>
+          <option>Neutral</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:18px">
+      <label class="field-label">Emotion / psychology notes <span class="field-hint">(start of trade)</span></label>
+      <textarea class="fi" id="f-psych" placeholder="How were you feeling? Any pre-trade hesitation or confidence?"></textarea>
+    </div>
+  </div>
+
+  <!-- MARKET ANALYSIS -->
+  <div class="form-card fu d6">
+    <div class="form-section-label">Market Analysis</div>
+    <div class="form-grid fg2">
+      <div class="field">
+        <label class="field-label">HTF analysis — 4HR / Daily / Weekly</label>
+        <textarea class="fi" id="f-htf" placeholder="What is HTF doing? Trend direction, key levels, bias…"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">DXY analysis — 4HR / Daily / Weekly</label>
+        <textarea class="fi" id="f-dxy" placeholder="DXY structure, direction, correlation with pair…"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">External factors — 15M / 30M AU / DXY</label>
+        <textarea class="fi" id="f-ext" placeholder="Any external confluences? DXY alignment at entry, AU context…"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">News influence</label>
+        <select class="fi" id="f-news-inf">
+          <option value="">Select…</option>
+          <option>NA</option>
+          <option>Huge</option>
+          <option>Moderate</option>
+          <option>Low</option>
+          <option>None</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="form-card fu d7">
+    <div class="form-section-label">Review &amp; Lessons</div>
+    <div class="field">
+      <label class="field-label">Teachings / Learning curve</label>
+      <textarea class="fi" id="f-lessons" style="min-height:100px" placeholder="What went well? What to improve? Key lesson from this trade…"></textarea>
+    </div>
+  </div>
+
+  <!-- CHART LINKS -->
+  <div class="form-card fu d8">
+    <div class="form-section-label">Chart Links</div>
+    <div class="form-grid fg3">
+      <div class="field">
+        <label class="field-label">TradingView 1M / 3M chart</label>
+        <input type="url" class="fi" id="f-tv1" placeholder="https://www.tradingview.com/x/…">
+      </div>
+      <div class="field">
+        <label class="field-label">TradingView 15M / 30M chart</label>
+        <input type="url" class="fi" id="f-tv2" placeholder="https://www.tradingview.com/x/…">
+      </div>
+      <div class="field">
+        <label class="field-label">DXY 15M / 30M chart</label>
+        <input type="url" class="fi" id="f-dxy-chart" placeholder="https://www.tradingview.com/x/…">
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="fu d9">
+    <div class="form-actions">
+      <button class="btn-primary" onclick="submitTrade()">Log Trade</button>
+      <button class="btn-ghost" onclick="clearForm()">Clear all</button>
+      <div class="form-success" id="form-success">✓ Trade logged successfully!</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: TRADES LOG
+════════════════════════════════════════════════ -->
+<div class="page" id="page-trades">
+<div class="wrap">
+  <header class="page-header fu d0">
+    <div class="trades-hdr-row">
+      <div>
+        <div class="page-title">Trade Log</div>
+        <div class="page-sub">All imported &amp; manually logged trades</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="trades-count" id="trades-count"></div>
+        <button class="btn-ghost" style="font-size:12px;padding:8px 16px" onclick="importTrades()">⬆ Import JSON</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px 16px" onclick="exportTrades()">⬇ Export New</button>
+        <button class="btn-primary" style="font-size:12px;padding:8px 16px;box-shadow:none" onclick="exportAll()">⬇ Export All</button>
+      </div>
+    </div>
+  </header>
+  <!-- Hidden file input for import -->
+  <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImport(event)">
+
+  <div class="pills fu d1" id="trades-pills"></div>
+
+  <div class="card tbl-card fu d2">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h3 id="trades-tbl-title">All Trades</h3>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="fi" id="trades-search" placeholder="Search pair, setup…" style="width:200px;padding:7px 12px;font-size:12px" oninput="renderTradesTable()">
+      </div>
+    </div>
+    <div class="tbl-scroll">
+      <table id="trades-table">
+        <thead><tr>
+          <th>#</th><th>Date</th><th>Pair</th><th>Dir.</th><th>Session</th>
+          <th>Setup / Model</th><th>Type</th><th>R</th><th>P&amp;L (R)</th>
+          <th>Result</th><th>Risk %</th><th>Rules</th><th>Emotion</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="trades-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="disclaimer fu d3">Showing historical Notion import + manually logged trades · Use "New trade" to add entries</div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PLACEHOLDER PAGES
+════════════════════════════════════════════════ -->
+<div class="page" id="page-pre-trade">
+  <div class="coming-soon">
+    <div class="cs-icon">📋</div>
+    <div class="cs-title">Pre-Trade Checklist</div>
+    <div class="cs-sub">A structured pre-trade analysis workflow — bias, HTF read, session context — coming soon.</div>
+  </div>
+</div>
+<div class="page" id="page-edge-finder">
+  <div class="coming-soon">
+    <div class="cs-icon">🔍</div>
+    <div class="cs-title">Edge Finder</div>
+    <div class="cs-sub">Deep statistical analysis by confluence combination, time of day, and market conditions — coming soon.</div>
+  </div>
+</div>
+<div class="page" id="page-execution">
+  <div class="coming-soon">
+    <div class="cs-icon">⚡</div>
+    <div class="cs-title">Execution Review</div>
+    <div class="cs-sub">Planned vs actual entry analysis, slippage tracking, and execution quality scoring — coming soon.</div>
+  </div>
+</div>
+<div class="page" id="page-monte-carlo">
+  <div class="coming-soon">
+    <div class="cs-icon">🎲</div>
+    <div class="cs-title">Monte Carlo Simulation</div>
+    <div class="cs-sub">Risk-of-ruin, drawdown projections, and confidence intervals based on your edge — coming soon.</div>
+  </div>
+</div>
+<div class="page" id="page-settings">
+  <div class="coming-soon">
+    <div class="cs-icon">⚙️</div>
+    <div class="cs-title">Settings</div>
+    <div class="cs-sub">Account configuration, risk defaults, pair watchlist, and data export — coming soon.</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   NAV ROUTING
+═══════════════════════════════════════════════════════════ */
+const pages = document.querySelectorAll('.page');
+const tabs  = document.querySelectorAll('.nav-tab');
+
+function goTo(pageId) {
+  pages.forEach(p => p.classList.remove('active'));
+  tabs.forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+  window.scrollTo(0, 0);
+  if (pageId === 'trades') renderTradesTable();
+}
+
+tabs.forEach(t => t.addEventListener('click', () => goTo(t.dataset.page)));
+
+/* ═══════════════════════════════════════════════════════════
+   HISTORICAL TRADE DATA (Notion export)
+═══════════════════════════════════════════════════════════ */
+const HIST = [
+  {id:1,pair:"AUD/USD",date:"2/4/25",session:"London",direction:"Short",setup:"NC Model",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:""},
+  {id:2,pair:"AUD/USD",date:"2/4/25",session:"London",direction:"Long",setup:"NC Model + Sweep",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Good entry. Needs BOS confirmation to strengthen."},
+  {id:3,pair:"USD/JPY",date:"3/4/25",session:"London",direction:"Short",setup:"IPS Continuation",type:"Forward Test",rr:1.5,pnl_r:1.5,result:"Win",notes:""},
+  {id:4,pair:"Gold",date:"3/4/25",session:"London",direction:"Short",setup:"NC Model + Sweep",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Derisk if entry is late. Take partials approaching solid profit."},
+  {id:5,pair:"AUD/USD",date:"9/4/25",session:"Asia",direction:"Long",setup:"NC Model + Sweep",type:"Forward Test",rr:4.5,pnl_r:4.5,result:"Win",notes:""},
+  {id:6,pair:"GBP/USD",date:"9/4/25",session:"Asia/London",direction:"Long",setup:"IPS Continuation",type:"Forward Test",rr:1.5,pnl_r:1.5,result:"Win",notes:"Tapped into 3M OB perfectly."},
+  {id:7,pair:"Gold",date:"10/4/25",session:"New York",direction:"Short",setup:"NC Model + Sweep",type:"Live",rr:4.5,pnl_r:-1.0,result:"Loss",notes:"DO NOT OVERRISK. Don't take countertrend without BOS."},
+  {id:8,pair:"AUD/USD",date:"11/4/25",session:"New York",direction:"Long",setup:"Backtest",type:"Back Test",rr:6.5,pnl_r:6.5,result:"Win",notes:"Great valid high-probability setup."},
+  {id:9,pair:"AUD/USD",date:"14/4/25",session:"New York",direction:"Long",setup:"Backtest",type:"Back Test",rr:3.5,pnl_r:3.5,result:"Win",notes:"Good NC+S model trade."},
+  {id:10,pair:"AUD/USD",date:"15/4/25",session:"London",direction:"Long",setup:"IPS Continuation",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Trust the system. Hit full TP 20 min after close."},
+  {id:11,pair:"AUD/USD",date:"15/5/25",session:"Asia",direction:"Long",setup:"Backtest",type:"Back Test",rr:2.5,pnl_r:2.5,result:"Win",notes:""},
+  {id:12,pair:"AUD/USD",date:"19/5/25",session:"New York",direction:"Long",setup:"NC Model + Sweep",type:"FT/BT",rr:7.5,pnl_r:0.0,result:"Breakeven",notes:"Strong rejection. Re-entry grounds existed."},
+  {id:13,pair:"AUD/USD",date:"22/5/25",session:"Asia",direction:"Short",setup:"IPS + Sweep",type:"Live",rr:1.5,pnl_r:0.0,result:"Breakeven",notes:"Happy with overall outcome."},
+  {id:14,pair:"AUD/USD",date:"22/5/25",session:"Asia",direction:"Short",setup:"IPS + Sweep",type:"Live",rr:4.5,pnl_r:4.5,result:"Win",notes:"Re-entry paid off."},
+  {id:15,pair:"AUD/USD",date:"22/5/25",session:"Asia/London",direction:"Long",setup:"IPS Continuation",type:"Forward Test",rr:2.5,pnl_r:0.0,result:"Breakeven",notes:"IPL validity uncertain."},
+  {id:16,pair:"AUD/USD",date:"27/5/25",session:"London",direction:"Short",setup:"IPS + Sweep",type:"FT/BT",rr:4.5,pnl_r:4.5,result:"Win",notes:"Textbook entry model."},
+  {id:17,pair:"AUD/USD",date:"27/5/25",session:"London",direction:"Short",setup:"Backtest",type:"FT/BT",rr:4.5,pnl_r:4.5,result:"Win",notes:"Clean NC+S — backtested later."},
+  {id:18,pair:"AUD/USD",date:"27/5/25",session:"London/NY",direction:"Short",setup:"IPS + Sweep",type:"FT/BT",rr:4.5,pnl_r:4.5,result:"Win",notes:"The model I waited for all afternoon. Played out perfectly."},
+  {id:19,pair:"AUD/USD",date:"29/5/25",session:"Asia",direction:"Long",setup:"EPS + IPS + Sweep",type:"Live",rr:3.5,pnl_r:3.5,result:"Win",notes:"Textbook entry. Trust your TP unless OF shifts."},
+  {id:20,pair:"AUD/USD",date:"29/5/25",session:"New York",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:3.5,result:"Win",notes:"Great trade. Stepped away, avoided FOMO."},
+  {id:21,pair:"AUD/USD",date:"3/6/25",session:"Asia",direction:"Long",setup:"Unknown",type:"Live",rr:1.5,pnl_r:-1.0,result:"Loss",notes:"HTF always holds more power."},
+  {id:22,pair:"AUD/USD",date:"3/6/25",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:"Entered on wrong timeframe. Wait for correct TF rejection."},
+  {id:23,pair:"AUD/USD",date:"24/6/25",session:"Asia",direction:"Short",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:"Enter on the TF the structure was created on."},
+  {id:24,pair:"AUD/USD",date:"27/6/25",session:"London",direction:"Long",setup:"Joker Sweep",type:"Live",rr:2.5,pnl_r:2.5,result:"Win",notes:"Joker sweep is the best model."},
+  {id:25,pair:"AUD/USD",date:"2/7/25",session:"London",direction:"Long",setup:"Joker Sweep",type:"Live",rr:4.5,pnl_r:4.5,result:"Win",notes:"NC+S and joker sweep in same rejection candle. Perfect."},
+  {id:26,pair:"AUD/USD",date:"2/9/25",session:"London",direction:"Long",setup:"IPS + Joker Sweep",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:"FOLLOW THE PLAN. Don't move SL away from BE to stay in."},
+  {id:27,pair:"AUD/USD",date:"4/9/25",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Forward Test",rr:2.5,pnl_r:0.0,result:"Breakeven",notes:"Stayed disciplined. Didn't FOMO off one rejection candle."},
+  {id:28,pair:"AUD/USD",date:"4/9/25",session:"London",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:"Never re-enter off emotion."},
+  {id:29,pair:"AUD/USD",date:"5/9/25",session:"New York",direction:"Long",setup:"EPS + IPS + Sweep",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"HTF protected structure is king."},
+  {id:30,pair:"AUD/USD",date:"8/9/25",session:"Asia",direction:"Long",setup:"IPS Continuation",type:"Forward Test",rr:3.5,pnl_r:3.5,result:"Win",notes:"15M setups great with rejection + second candle."},
+  {id:31,pair:"GBP/USD",date:"18/9/25",session:"London",direction:"Short",setup:"IPS + Sweep",type:"Live",rr:4.5,pnl_r:-1.0,result:"Loss",notes:"Wait for 30M/1HR confirmations."},
+  {id:32,pair:"Gold",date:"24/9/25",session:"Asia/London",direction:"Long",setup:"IPS Continuation",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Closed early on DXY rejection. Good trade management."},
+  {id:33,pair:"AUD/USD",date:"25/9/25",session:"Asia",direction:"Short",setup:"IPS Continuation",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:""},
+  {id:34,pair:"Gold",date:"16/10/25",session:"London",direction:"Long",setup:"IPS + FBoS",type:"Live",rr:6.5,pnl_r:6.5,result:"Win",notes:"Don't trail SL too aggressively. Would've got full 6.8RR."},
+  {id:35,pair:"Gold",date:"21/10/25",session:"Asia",direction:"Short",setup:"IPS Continuation",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:""},
+  {id:36,pair:"DAX",date:"23/10/25",session:"London",direction:"Short",setup:"IPS + Sweep",type:"Live",rr:4.5,pnl_r:-1.0,result:"Loss",notes:"Trade DAX after London open."},
+  {id:37,pair:"Gold",date:"12/11/25",session:"Asia",direction:"Short",setup:"IPS Continuation",type:"Live",rr:2.5,pnl_r:2.5,result:"Win",notes:""},
+  {id:38,pair:"Gold",date:"19/11/25",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Forward Test",rr:4.5,pnl_r:4.5,result:"Win",notes:"Great FBOS setup — very high probability."},
+  {id:39,pair:"Gold",date:"25/11/25",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Forward Test",rr:3.5,pnl_r:3.5,result:"Win",notes:""},
+  {id:40,pair:"Gold",date:"25/11/25",session:"London",direction:"Long",setup:"IPS + Joker Sweep",type:"Live",rr:4.5,pnl_r:4.5,result:"Win",notes:"Set BE at 1:1RR. Moved SL at 3RR."},
+  {id:41,pair:"DAX",date:"26/11/25",session:"London",direction:"Long",setup:"IPS + Joker Sweep",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"First-structure-break BE was better than 1:1 here."},
+  {id:42,pair:"AUD/USD",date:"27/11/25",session:"Asia/London",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:0.0,result:"Breakeven",notes:"Well executed FBOS. Less emotional with planned setups."},
+  {id:43,pair:"Gold",date:"1/12/25",session:"London",direction:"Long",setup:"IPS Continuation",type:"Live",rr:2.5,pnl_r:2.5,result:"Win",notes:"Gold PA great on Mondays."},
+  {id:44,pair:"Gold",date:"3/12/25",session:"London",direction:"Long",setup:"IPS Continuation",type:"Live",rr:2.5,pnl_r:-1.0,result:"Loss",notes:""},
+  {id:45,pair:"Gold",date:"3/12/25",session:"London",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:4.5,pnl_r:-1.0,result:"Loss",notes:"Valid loss. Good FBOS setup. Unfortunate."},
+  {id:46,pair:"AUD/USD",date:"5/1/26",session:"London",direction:"Long",setup:"IPS + Joker Sweep",type:"Live",rr:2.5,pnl_r:0.0,result:"Breakeven",notes:"Valid BE. Better BE criteria would've saved it."},
+  {id:47,pair:"Gold",date:"6/1/26",session:"London",direction:"Long",setup:"IPS Continuation",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"Double-check SL and TP."},
+  {id:48,pair:"Gold",date:"13/1/26",session:"New York",direction:"Long",setup:"IPS Continuation",type:"Live",rr:2.5,pnl_r:2.5,result:"Win",notes:"Keep testing SL placement."},
+  {id:49,pair:"Gold",date:"22/1/26",session:"London",direction:"Short",setup:"NC Model + Sweep",type:"Live",rr:3.5,pnl_r:3.5,result:"Win",notes:"Solid trade. Stick to BE criteria."},
+  {id:50,pair:"Gold",date:"26/1/26",session:"New York",direction:"Long",setup:"IPS + FBoS",type:"Live",rr:3.5,pnl_r:3.5,result:"Win",notes:"Don't ladder SL into profit too soon."},
+  {id:51,pair:"Gold",date:"27/1/26",session:"Asia",direction:"Short",setup:"IPS Continuation",type:"Forward Test",rr:4.5,pnl_r:4.5,result:"Win",notes:""},
+  {id:52,pair:"AUD/USD",date:"27/1/26",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:0.0,result:"Breakeven",notes:""},
+  {id:53,pair:"AUD/USD",date:"28/1/26",session:"New York",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:3.5,pnl_r:-1.0,result:"Loss",notes:""},
+  {id:54,pair:"Gold",date:"29/1/26",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:2.5,pnl_r:2.5,result:"Win",notes:"STOP laddering SL near TP. Only move on structure breaks."},
+  {id:55,pair:"Gold",date:"29/1/26",session:"London",direction:"Long",setup:"IPS Continuation",type:"Live",rr:1.5,pnl_r:-1.0,result:"Loss",notes:"Focus mainly on sweep entries."},
+  {id:56,pair:"AUD/USD",date:"29/1/26",session:"London/NY",direction:"Long",setup:"IPS Continuation",type:"Live",rr:3.5,pnl_r:3.5,result:"Win",notes:"Exited 30M before news. Disciplined."},
+  {id:57,pair:"AUD/USD",date:"4/2/26",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Good early closure. DXY/London open rejection."},
+  {id:58,pair:"Gold",date:"5/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Forward Test",rr:2.5,pnl_r:-1.0,result:"Loss",notes:"Be patient in Asia. Let price print more structure."},
+  {id:59,pair:"GBP/USD",date:"5/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Forward Test",rr:4.5,pnl_r:0.0,result:"Breakeven",notes:"Same trade Besh took. Understanding his strategy quickly."},
+  {id:60,pair:"GBP/USD",date:"6/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"Perfect divergence trade."},
+  {id:61,pair:"GBP/USD",date:"6/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"Passed account. Closed manually at flat 2RR."},
+  {id:62,pair:"AUD/USD",date:"6/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"Besh strategy works on AUD/USD too."},
+  {id:63,pair:"GBP/USD",date:"9/2/26",session:"Asia",direction:"Long",setup:"Besh Strategy",type:"Live",rr:2.5,pnl_r:0.0,result:"Breakeven",notes:"On Mondays, watch GBP in London not Asia."},
+  {id:64,pair:"GBP/USD",date:"9/2/26",session:"London",direction:"Long",setup:"Besh Strategy",type:"Live",rr:3.5,pnl_r:0.0,result:"Breakeven",notes:"Set SL first, TP afterwards. It can run fast."},
+  {id:65,pair:"GBP/USD",date:"9/2/26",session:"London",direction:"Long",setup:"Besh Strategy",type:"Live",rr:4.5,pnl_r:4.5,result:"Win",notes:"First win on funded account. 5% on 1-phase eval."},
+  {id:66,pair:"AUD/USD",date:"9/2/26",session:"London",direction:"Long",setup:"IPS Continuation",type:"Forward Test",rr:2.5,pnl_r:2.5,result:"Win",notes:"A+++ trade. MTF/LTF aligned, divergence on entry."},
+  {id:67,pair:"AUD/USD",date:"9/2/26",session:"London",direction:"Long",setup:"IPS + Sweep",type:"Forward Test",rr:1.5,pnl_r:1.5,result:"Win",notes:"Great MTF trade. All biases aligned."},
+  {id:68,pair:"GBP/USD",date:"11/3/26",session:"Asia",direction:"Long",setup:"IPS + Sweep",type:"Live",rr:1.5,pnl_r:1.5,result:"Win",notes:"A win was needed mentally. Happy with result."},
+  {id:69,pair:"GBP/USD",date:"29/4/26",session:"London",direction:"Short",setup:"Besh Strategy",type:"Live",rr:2.5,pnl_r:0.0,result:"Breakeven",notes:"After big volume push, wait for a sweep before entering."}
+];
+
+/* ═══════════════════════════════════════════════════════════
+   COMPUTED STATS (historical)
+═══════════════════════════════════════════════════════════ */
+const wins   = HIST.filter(t => t.result === 'Win');
+const losses = HIST.filter(t => t.result === 'Loss');
+const bes    = HIST.filter(t => t.result === 'Breakeven');
+const totalR = HIST.reduce((a,t)=>a+t.pnl_r,0);
+const winRate = (wins.length/HIST.length*100).toFixed(1);
+const avgWin  = (wins.reduce((a,t)=>a+t.pnl_r,0)/wins.length).toFixed(2);
+const avgLoss = (losses.reduce((a,t)=>a+t.pnl_r,0)/losses.length).toFixed(2);
+const pf      = (wins.reduce((a,t)=>a+t.pnl_r,0)/Math.abs(losses.reduce((a,t)=>a+t.pnl_r,0))).toFixed(2);
+const exp     = (totalR/HIST.length).toFixed(2);
+const bestTr  = HIST.reduce((a,b)=>b.pnl_r>a.pnl_r?b:a);
+
+const PAIR_STATS = {
+  "AUD/USD":{"count":36,"wins":22,"losses":7,"pnl_r":64.0,"wr":61.1},
+  "Gold":   {"count":20,"wins":14,"losses":6,"pnl_r":40.0,"wr":70.0},
+  "GBP/USD":{"count":10,"wins":5, "losses":1,"pnl_r":10.5,"wr":50.0},
+  "DAX":    {"count":2, "wins":1, "losses":1,"pnl_r":1.5, "wr":50.0},
+  "USD/JPY":{"count":1, "wins":1, "losses":0,"pnl_r":1.5, "wr":100.0}
+};
+const SETUP_STATS = {
+  "IPS + Sweep":       {"count":21,"wins":10,"losses":7,"pnl_r":25.0,"wr":47.6},
+  "IPS Continuation":  {"count":17,"wins":12,"losses":4,"pnl_r":26.0,"wr":70.6},
+  "Besh Strategy":     {"count":9, "wins":4, "losses":1,"pnl_r":10.0,"wr":44.4},
+  "NC Model + Sweep":  {"count":6, "wins":4, "losses":1,"pnl_r":10.0,"wr":66.7},
+  "IPS + Joker Sweep": {"count":4, "wins":2, "losses":1,"pnl_r":6.0, "wr":50.0},
+  "EPS + IPS + Sweep": {"count":2, "wins":2, "losses":0,"pnl_r":6.0, "wr":100.0},
+  "IPS + FBoS":        {"count":2, "wins":2, "losses":0,"pnl_r":10.0,"wr":100.0},
+  "Joker Sweep":       {"count":2, "wins":2, "losses":0,"pnl_r":7.0, "wr":100.0},
+  "NC Model":          {"count":1, "wins":1, "losses":0,"pnl_r":1.5, "wr":100.0},
+  "Backtest":          {"count":4, "wins":4, "losses":0,"pnl_r":16.5,"wr":100.0}
+};
+const SESS_STATS = {
+  "London":     {"count":28,"wins":18,"losses":7,"bes":3,"pnl_r":47.0,"wr":64.3,"color":"#5ab4f5"},
+  "Asia":       {"count":26,"wins":15,"losses":6,"bes":5,"pnl_r":39.5,"wr":57.7,"color":"#a78bfa"},
+  "New York":   {"count":9, "wins":6, "losses":2,"bes":1,"pnl_r":20.0,"wr":66.7,"color":"#f0b429"},
+  "Asia/London":{"count":4, "wins":2, "losses":0,"bes":2,"pnl_r":3.0, "wr":50.0,"color":"#00d97e"},
+  "London/NY":  {"count":2, "wins":2, "losses":0,"bes":0,"pnl_r":8.0, "wr":100.0,"color":"#f04f4f"}
+};
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD RENDERS
+═══════════════════════════════════════════════════════════ */
+function renderKPIs() {
+  const kpis = [
+    {lbl:"Total P&L",val:`+${totalR}R`,sub:`${HIST.length} trades recorded`,cls:"g",vc:"green"},
+    {lbl:"Win Rate",val:`${winRate}%`,sub:`${wins.length}W / ${losses.length}L / ${bes.length}BE`,cls:"g",vc:"green"},
+    {lbl:"Profit Factor",val:pf,sub:"Gross profit ÷ gross loss",cls:"au",vc:"gold"},
+    {lbl:"Avg R Multiple",val:`${avgWin}R`,sub:`Expectancy: ${exp}R/trade`,cls:"b",vc:"blue"},
+    {lbl:"Avg Win / Loss",val:`${avgWin}R`,sub:`Avg loss: ${avgLoss}R`,cls:"b",vc:"blue"},
+    {lbl:"Best Trade",val:`+${bestTr.pnl_r}R`,sub:`${bestTr.pair} · ${bestTr.setup}`,cls:"au",vc:"gold"}
+  ];
+  document.getElementById('kpi-row').innerHTML = kpis.map(k=>`
+    <div class="card kpi ${k.cls}">
+      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-val ${k.vc}">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+function renderEquity() {
+  let run=0; const pts=[];
+  HIST.forEach((t,i)=>{ run+=t.pnl_r; pts.push(run); });
+  const W=600,H=130,P=10;
+  const mn=Math.min(0,...pts), mx=Math.max(...pts), rng=mx-mn||1;
+  const tx=i=>P+(i/(pts.length-1))*(W-P*2);
+  const ty=v=>H-P-((v-mn)/rng)*(H-P*2);
+  const poly=pts.map((v,i)=>`${tx(i)},${ty(v)}`).join(' ');
+  const area=`${tx(pts.length-1)},${ty(0)} ${tx(0)},${ty(0)}`;
+  const svg=document.getElementById('eq-svg');
+  svg.innerHTML=`<defs>
+    <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00d97e" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#00d97e" stop-opacity="0.01"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <line x1="${P}" y1="${ty(0)}" x2="${W-P}" y2="${ty(0)}" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+  <polygon points="${poly} ${area}" fill="url(#eg)"/>
+  <polyline points="${poly}" fill="none" stroke="#00d97e" stroke-width="2.2" filter="url(#glow)" stroke-linejoin="round" stroke-linecap="round"
+    style="stroke-dasharray:${W*4};stroke-dashoffset:${W*4};animation:dash 1.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards"/>
+  <circle cx="${tx(pts.length-1)}" cy="${ty(pts[pts.length-1])}" r="3.5" fill="#00d97e" filter="url(#glow)"/>
+  <text x="${tx(pts.indexOf(mx))}" y="${ty(mx)-7}" fill="#00d97e" font-size="8.5" font-family="JetBrains Mono" text-anchor="middle">+${mx.toFixed(1)}R</text>`;
+}
+
+function renderDonut() {
+  const C=238.8, tot=HIST.length;
+  const wd=wins.length/tot*C, ld=losses.length/tot*C, bd=bes.length/tot*C;
+  function set(id,dash,off,delay){
+    const el=document.getElementById(id);
+    el.style.strokeDasharray=`0 ${C}`;
+    el.style.strokeDashoffset=-off;
+    el.style.transition=`stroke-dasharray 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}s`;
+    setTimeout(()=>{el.style.strokeDasharray=`${dash} ${C}`;},60);
+  }
+  set('donut-win',wd,0,0.5);
+  set('donut-loss',ld,-wd,0.65);
+  set('donut-be',bd,-(wd+ld),0.8);
+  document.getElementById('donut-pct').textContent=winRate+'%';
+  const aw=(wins.reduce((a,t)=>a+t.pnl_r,0)/wins.length*1000).toFixed(0);
+  const al=(losses.reduce((a,t)=>a+t.pnl_r,0)/losses.length*1000).toFixed(0);
+  const bw=Math.max(...wins.map(t=>t.pnl_r))*1000;
+  const wl=Math.min(...losses.map(t=>t.pnl_r))*1000;
+  document.getElementById('donut-stats').innerHTML=[
+    ['<span class="green">●</span> Wins',`<span class="green">${wins.length}</span>`],
+    ['<span class="red">●</span> Losses',`<span class="red">${losses.length}</span>`],
+    ['<span style="color:rgba(90,180,245,0.6)">●</span> Breakeven',`<span class="blue">${bes.length}</span>`],
+    ['Avg Win',`<span class="green">$${Number(aw).toLocaleString()}</span>`],
+    ['Avg Loss',`<span class="red">$${Math.abs(Number(al)).toLocaleString()}</span>`],
+    ['Largest Win',`<span class="green">$${bw.toLocaleString()}</span>`],
+    ['Largest Loss',`<span class="red">$${Math.abs(wl).toLocaleString()}</span>`]
+  ].map(([l,v])=>`<div class="ds-row"><span class="ds-l">${l}</span><span class="ds-v">${v}</span></div>`).join('');
+}
+
+function renderPairs() {
+  const s=Object.entries(PAIR_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
+  const mx=Math.max(...s.map(([,v])=>Math.abs(v.pnl_r)));
+  document.getElementById('pair-bars').innerHTML=s.map(([p,v])=>{
+    const pos=v.pnl_r>=0, pct=(Math.abs(v.pnl_r)/mx*100).toFixed(1);
+    const pc=pos?'var(--green)':'var(--red)';
+    return `<div class="pair-row">
+      <div class="pair-nm">${p}</div>
+      <div class="bar-track"><div class="bar-fill ${pos?'g':'r'}" data-w="${pct}" style="width:0%"></div></div>
+      <div class="pair-pnl" style="color:${pc}">${pos?'+':''}${v.pnl_r}R</div>
+      <div class="pair-meta">${v.wr}% WR<br>${v.wins}W/${v.losses}L</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach(el=>{el.style.width=el.dataset.w+'%';}); },350);
+}
+
+function renderSetups() {
+  const s=Object.entries(SETUP_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r);
+  const mx=Math.max(...s.map(([,v])=>v.pnl_r));
+  document.getElementById('setup-grid').innerHTML=s.map(([nm,v])=>{
+    const pos=v.pnl_r>=0;
+    const pc=pos?'var(--green)':'var(--red)';
+    const wc=v.wr>=60?'var(--green)':v.wr>=50?'var(--gold)':'var(--red)';
+    return `<div class="card setup-card">
+      <div class="setup-nm">${nm}</div>
+      <div class="setup-sr">
+        <div class="setup-pnl" style="color:${pc}">${pos?'+':''}${v.pnl_r}R</div>
+        <div class="setup-rt">
+          <span class="setup-wr" style="color:${wc}">${v.wr}%</span>
+          <div class="setup-wl">${v.wins}W · ${v.losses}L · ${v.count}</div>
+        </div>
+      </div>
+      <div class="setup-bar"><div class="setup-bf" data-w="${(v.pnl_r/mx*100).toFixed(1)}" style="background:${pc};width:0%"></div></div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{ document.querySelectorAll('.setup-bf').forEach(el=>{el.style.width=el.dataset.w+'%';}); },550);
+}
+
+function renderSessions() {
+  document.getElementById('sess-row').innerHTML=Object.entries(SESS_STATS).sort((a,b)=>b[1].pnl_r-a[1].pnl_r).map(([nm,v])=>{
+    const wc=v.wr>=65?'var(--green)':v.wr>=55?'var(--gold)':'var(--red)';
+    const pc=v.pnl_r>=0?'var(--green)':'var(--red)';
+    return `<div class="card sess-card">
+      <div class="sess-nm"><span class="sess-dot" style="background:${v.color}"></span>${nm}</div>
+      <div class="sess-wr" style="color:${wc}">${v.wr}%</div>
+      <div class="sess-det"><span>${v.wins}W / ${v.losses}L / ${v.bes}BE</span><span>${v.count} trades</span></div>
+      <div class="sess-pnl" style="color:${pc}">${v.pnl_r>=0?'+':''}${v.pnl_r}R net</div>
+    </div>`;
+  }).join('');
+}
+
+function renderInsights() {
+  const ins=[
+    {ico:"🏆",type:"STRENGTH",tc:"var(--green)",title:"IPS Continuation is Your Edge",body:`70.6% win rate across 17 trades with +26R net — your highest win-rate setup at meaningful sample size. Average winner at 3.08R vs 1R risk means every win pays 3× your loss.`,act:"→ Prioritise IPS Continuation. Increase sizing when all confluences align.",ac:"g"},
+    {ico:"⚔️",type:"STRENGTH",tc:"var(--green)",title:"Gold is Your Best Instrument",body:`Gold leads with 70% WR and +40R across 20 trades. Produced the two biggest single wins (+6.5R FBoS, +4.5R multiple). Your edge in Gold is proven.`,act:"→ Continue treating Gold as primary focus. Add dedicated Gold accounts.",ac:"g"},
+    {ico:"⚠️",type:"WATCH",tc:"var(--gold)",title:"IPS + Sweep Below Break-Even Win Rate",body:`Your most-traded setup (21 trades) has only 47.6% WR — below 50%. Still profitable (+25R) due to high RR targets but you're losing more than half. Seven losses signal entry quality issues.`,act:"→ Add MTF alignment filter. Enter only on correct timeframe confirmation.",ac:"au"},
+    {ico:"🧠",type:"WATCH",tc:"var(--gold)",title:"Besh Strategy Still in Development",body:`44.4% WR on 9 trades — lowest performer by win rate. Still profitable (+10R net) but the strategy needs more time in forward testing before going full live.`,act:"→ FT only until WR exceeds 55% on 20+ trade sample.",ac:"au"},
+    {ico:"🕐",type:"SESSION",tc:"var(--blue-lt)",title:"London/NY Overlap is 100% Win Rate",body:`Both trades in London/New York overlap resulted in wins (+8R net). This session's institutional volume confluence clearly suits your strategy perfectly.`,act:"→ Actively hunt setups during London/NY overlap. Set alerts 30 min before NY open.",ac:"b"},
+    {ico:"💎",type:"ELITE",tc:"var(--gold)",title:"Exceptional Risk:Reward Ratio",body:`Avg win +3.08R vs avg loss −1R = 3.08:1 ratio. Profit factor of 8.83 means for every $1 lost you make $8.83. This is institutional-level performance.`,act:"→ Protect this ratio. Never risk more than 1R regardless of conviction.",ac:"g"},
+    {ico:"🎯",type:"FOCUS",tc:"var(--purple)",title:"Joker Sweep & FBoS Are A+ Setups",body:`Pure Joker Sweep is 100% WR (2/2, +7R), IPS + FBoS is 100% (2/2, +10R). Your own notes confirm these are 'very high probability' setups you feel most confident executing.`,act:"→ Build a checklist around Joker Sweep + FBoS criteria. Hunt these first each session.",ac:"b"},
+    {ico:"🧘",type:"MINDSET",tc:"var(--purple)",title:"Emotional Trades Are Your Biggest Leak",body:`Across 5+ loss trades, notes cite: moving SL from BE, re-entering off emotion, overrisking on conviction, FOMOing into others' trades. Avoidable losses destroying an elite system.`,act:"→ Pre-trade checklist: Am I emotional? Is this my plan? Only then enter.",ac:"au"},
+    {ico:"🌙",type:"SESSION",tc:"var(--blue-lt)",title:"Asia Session Has Most Room to Improve",body:`Asia is your highest-volume session (26 trades) but lowest WR at 57.7%. Notes show repeated entry on wrong timeframes and fighting HTF direction during Asia sessions.`,act:"→ During Asia, only take IPS Continuation or Sweep entries. No countertrend.",ac:"b"}
+  ];
+  document.getElementById('ins-grid').innerHTML=ins.map(i=>`
+    <div class="card ins-card">
+      <div class="ins-hdr">
+        <div class="ins-ico">${i.ico}</div>
+        <div><div class="ins-type" style="color:${i.tc}">${i.type}</div><div class="ins-title">${i.title}</div></div>
+      </div>
+      <p class="ins-body">${i.body}</p>
+      <span class="ins-action ${i.ac}">${i.act}</span>
+    </div>`).join('');
+}
+
+/* Dashboard trade table */
+let dashFilter='All';
+function renderDashTable(f='All') {
+  dashFilter=f;
+  const data=f==='All'?HIST:HIST.filter(t=>{
+    if(f==='Wins') return t.result==='Win';
+    if(f==='Losses') return t.result==='Loss';
+    if(f==='BE') return t.result==='Breakeven';
+    if(f==='Live') return t.type==='Live';
+    if(f==='FT') return t.type!=='Live';
+    return true;
+  });
+  const dcs=['All','Wins','Losses','BE','Live','FT'];
+  document.getElementById('dash-pills').innerHTML=dcs.map(c=>`
+    <button class="pill ${c===dashFilter?'on':''}" onclick="renderDashTable('${c}')">${c}<span class="pill-n">${
+      c==='All'?HIST.length:c==='Wins'?wins.length:c==='Losses'?losses.length:c==='BE'?bes.length:c==='Live'?HIST.filter(t=>t.type==='Live').length:HIST.filter(t=>t.type!=='Live').length
+    }</span></button>`).join('');
+  document.getElementById('dash-tbody').innerHTML=data.map(t=>{
+    const rc=t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
+    const pc=t.pnl_r>0?'var(--green)':t.pnl_r<0?'var(--red)':'var(--text3)';
+    const dc=t.direction==='Long'?'var(--green)':t.direction==='Short'?'var(--red)':'var(--text3)';
+    const tc=t.type==='Live'?'':t.type.includes('Back')?'<span class="badge bft">BT</span>':'<span class="badge bft">FT</span>';
+    return `<tr>
+      <td class="td-dim">${t.id}</td>
+      <td class="td-num" style="font-size:10.5px">${t.date}</td>
+      <td><strong>${t.pair}</strong></td>
+      <td style="color:var(--text2);font-size:11px">${t.session}</td>
+      <td style="font-size:11px;font-weight:700;color:${dc}">${t.direction||'—'}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:120px;white-space:normal">${t.setup}</td>
+      <td>${tc||`<span style="font-family:var(--mono);font-size:10px;color:var(--text3)">Live</span>`}</td>
+      <td class="td-num">${t.rr?t.rr+'R':'—'}</td>
+      <td class="td-num" style="color:${pc};font-weight:700">${t.pnl_r>0?'+':''}${t.pnl_r}R</td>
+      <td class="td-num" style="color:${pc}">${t.pnl_r!==0?(t.pnl_r>0?'+$':'-$')+Math.abs(t.pnl_r*1000).toLocaleString():'$0'}</td>
+      <td><span class="badge ${rc}">${t.result}</span></td>
+      <td class="td-note">${t.notes?t.notes.substring(0,100)+(t.notes.length>100?'…':''):'<span style="color:var(--text3)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOCALSTORAGE — new trades
+═══════════════════════════════════════════════════════════ */
+function getNewTrades() {
+  try { return JSON.parse(localStorage.getItem('journal_trades')||'[]'); } catch(e){ return []; }
+}
+function saveNewTrades(arr) {
+  localStorage.setItem('journal_trades', JSON.stringify(arr));
+}
+function getSelectedTags(groupId) {
+  return [...document.querySelectorAll(`#${groupId} .tag-pill.on`)].map(el=>el.dataset.val);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORM LOGIC
+═══════════════════════════════════════════════════════════ */
+// Set default datetime to now
+function setDefaultDatetime() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('f-datetime').value = local;
+}
+
+// Tag pills toggle
+document.querySelectorAll('.tag-pill').forEach(p=>{
+  p.addEventListener('click',()=>p.classList.toggle('on'));
+});
+
+function onResultChange() {
+  const v = document.getElementById('f-result').value;
+  const cf = document.getElementById('cf-reason');
+  cf.classList.toggle('show', v === 'Loss');
+}
+
+function onRulesChange() {
+  const v = document.getElementById('f-rules').value;
+  const cf = document.getElementById('cf-rules-reason');
+  cf.classList.toggle('show', v.startsWith('N'));
+}
+
+let extraOpen = false;
+function toggleExtra() {
+  extraOpen = !extraOpen;
+  const el = document.getElementById('extra-fields');
+  const icon = document.getElementById('extra-toggle-icon');
+  const lnk = document.getElementById('extra-toggle');
+  el.classList.toggle('open', extraOpen);
+  icon.textContent = extraOpen ? '−' : '+';
+  lnk.textContent = '';
+  lnk.innerHTML = `<span id="extra-toggle-icon">${extraOpen?'−':'+'}</span> ${extraOpen?'Hide':'Show'} planned-vs-actual fields (recommended)`;
+}
+
+function clearForm() {
+  // Reset all inputs
+  ['f-datetime','f-pair','f-type','f-direction','f-session','f-protrend','f-duration',
+   'f-model','f-entry-type','f-tf','f-execution','f-result','f-result-method','f-rr','f-target',
+   'f-reason','f-risk','f-news','f-vol','f-sl','f-entry-conf','f-be','f-reentry','f-lf-break',
+   'f-mf-break','f-rules','f-rules-reason','f-emotion','f-psych','f-htf','f-dxy','f-ext',
+   'f-news-inf','f-lessons','f-tv1','f-tv2','f-dxy-chart'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.querySelectorAll('.tag-pill.on').forEach(p=>p.classList.remove('on'));
+  document.getElementById('cf-reason').classList.remove('show');
+  document.getElementById('cf-rules-reason').classList.remove('show');
+  document.getElementById('form-success').classList.remove('show');
+  setDefaultDatetime();
+}
+
+function validateForm() {
+  const req = ['f-datetime','f-pair','f-type','f-direction','f-session','f-model','f-result','f-rr','f-risk','f-news'];
+  const missing = req.filter(id=>{const el=document.getElementById(id); return !el||!el.value.trim();});
+  if(missing.length){
+    const el=document.getElementById(missing[0]);
+    if(el){ el.focus(); el.style.borderColor='var(--red)'; setTimeout(()=>{el.style.borderColor='';},2500); }
+    return false;
+  }
+  return true;
+}
+
+function submitTrade() {
+  if(!validateForm()) return;
+  const t = {
+    id: Date.now(),
+    source: 'manual',
+    datetime: document.getElementById('f-datetime').value,
+    pair: document.getElementById('f-pair').value,
+    type: document.getElementById('f-type').value,
+    direction: document.getElementById('f-direction').value,
+    session: document.getElementById('f-session').value,
+    protrend: document.getElementById('f-protrend').value,
+    duration: document.getElementById('f-duration').value,
+    model: document.getElementById('f-model').value,
+    entryType: document.getElementById('f-entry-type').value,
+    tf: document.getElementById('f-tf').value,
+    execution: document.getElementById('f-execution').value,
+    conditions: getSelectedTags('tags-conditions'),
+    confluences: getSelectedTags('tags-confluences'),
+    result: document.getElementById('f-result').value,
+    resultMethod: document.getElementById('f-result-method').value,
+    rr: document.getElementById('f-rr').value,
+    target: document.getElementById('f-target').value,
+    reason: document.getElementById('f-reason').value,
+    risk: document.getElementById('f-risk').value,
+    news: document.getElementById('f-news').value,
+    vol: document.getElementById('f-vol').value,
+    sl: document.getElementById('f-sl').value,
+    entryConf: document.getElementById('f-entry-conf').value,
+    be: document.getElementById('f-be').value,
+    reentry: document.getElementById('f-reentry').value,
+    lfBreak: document.getElementById('f-lf-break').value,
+    mfBreak: document.getElementById('f-mf-break').value,
+    rules: document.getElementById('f-rules').value,
+    rulesReason: document.getElementById('f-rules-reason').value,
+    emotion: document.getElementById('f-emotion').value,
+    psych: document.getElementById('f-psych').value,
+    htf: document.getElementById('f-htf').value,
+    dxy: document.getElementById('f-dxy').value,
+    ext: document.getElementById('f-ext').value,
+    newsInf: document.getElementById('f-news-inf').value,
+    lessons: document.getElementById('f-lessons').value,
+    tv1: document.getElementById('f-tv1').value,
+    tv2: document.getElementById('f-tv2').value,
+    dxyChart: document.getElementById('f-dxy-chart').value,
+  };
+  const arr = getNewTrades();
+  arr.unshift(t);
+  saveNewTrades(arr);
+  document.getElementById('form-success').classList.add('show');
+  setTimeout(()=>{ document.getElementById('form-success').classList.remove('show'); },3000);
+  clearForm();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRADES PAGE
+═══════════════════════════════════════════════════════════ */
+let tradesFilter = 'All';
+
+function deleteTrade(id) {
+  if(!confirm('Delete this trade?')) return;
+  const arr = getNewTrades().filter(t=>t.id !== id);
+  saveNewTrades(arr);
+  renderTradesTable();
+}
+
+function renderTradesTable() {
+  const newTrades = getNewTrades();
+  const search = (document.getElementById('trades-search')||{}).value||'';
+  const sq = search.toLowerCase();
+
+  // Build combined dataset
+  const combined = [
+    ...newTrades.map(t=>({
+      _id: t.id,
+      _src: 'manual',
+      date: t.datetime ? t.datetime.split('T')[0] : '—',
+      pair: t.pair,
+      direction: t.direction,
+      session: t.session,
+      setup: t.model,
+      type: t.type,
+      rr: t.rr,
+      pnl_r: t.result==='Win'?parseFloat(t.rr)||0:t.result==='Loss'?-1:0,
+      result: t.result,
+      risk: t.risk,
+      rules: t.rules,
+      emotion: t.emotion,
+    })),
+    ...HIST.map(t=>({
+      _id: null,
+      _src: 'notion',
+      date: t.date,
+      pair: t.pair,
+      direction: t.direction,
+      session: t.session,
+      setup: t.setup,
+      type: t.type,
+      rr: t.rr ? t.rr+'R' : '—',
+      pnl_r: t.pnl_r,
+      result: t.result,
+      risk: '—',
+      rules: '—',
+      emotion: '—',
+    }))
+  ];
+
+  // Filter by result/type
+  let filtered = combined.filter(t=>{
+    if(tradesFilter==='Wins') return t.result==='Win';
+    if(tradesFilter==='Losses') return t.result==='Loss';
+    if(tradesFilter==='BE') return t.result==='Breakeven';
+    if(tradesFilter==='New') return t._src==='manual';
+    if(tradesFilter==='Imported') return t._src==='notion';
+    return true;
+  });
+
+  // Search filter
+  if(sq) {
+    filtered = filtered.filter(t=>
+      (t.pair||'').toLowerCase().includes(sq) ||
+      (t.setup||'').toLowerCase().includes(sq) ||
+      (t.session||'').toLowerCase().includes(sq) ||
+      (t.result||'').toLowerCase().includes(sq)
+    );
+  }
+
+  // Pills
+  const pcs = ['All','Wins','Losses','BE','New','Imported'];
+  const totals = {
+    All: combined.length,
+    Wins: combined.filter(t=>t.result==='Win').length,
+    Losses: combined.filter(t=>t.result==='Loss').length,
+    BE: combined.filter(t=>t.result==='Breakeven').length,
+    New: newTrades.length,
+    Imported: HIST.length
+  };
+  document.getElementById('trades-pills').innerHTML = pcs.map(c=>`
+    <button class="pill ${c===tradesFilter?'on':''}" onclick="tradesFilter='${c}';renderTradesTable()">
+      ${c}<span class="pill-n">${totals[c]}</span>
+    </button>`).join('');
+
+  document.getElementById('trades-count').textContent = `${filtered.length} trades`;
+
+  if(!filtered.length) {
+    document.getElementById('trades-tbody').innerHTML = `<tr><td colspan="14">
+      <div class="empty-state">
+        <div class="es-ico">📭</div>
+        <div>No trades found</div>
+        <div style="margin-top:6px;font-size:11px">Use <strong>New trade</strong> to log your first entry</div>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  document.getElementById('trades-tbody').innerHTML = filtered.map((t,i)=>{
+    const rc=t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
+    const pc=t.pnl_r>0?'var(--green)':t.pnl_r<0?'var(--red)':'var(--text3)';
+    const dc=t.direction==='Long'?'var(--green)':t.direction==='Short'?'var(--red)':'var(--text3)';
+    const srcBadge=t._src==='manual'?`<span style="font-family:var(--mono);font-size:9px;color:var(--blue-lt);background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);padding:2px 7px;border-radius:10px">NEW</span>`:'';
+    return `<tr>
+      <td class="td-dim">${filtered.length-i}</td>
+      <td class="td-num" style="font-size:10.5px">${t.date}</td>
+      <td><strong>${t.pair}</strong> ${srcBadge}</td>
+      <td style="font-size:11px;font-weight:700;color:${dc}">${t.direction||'—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${t.session}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:130px;white-space:normal">${t.setup||'—'}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">${t.type}</td>
+      <td class="td-num">${t.rr||'—'}</td>
+      <td class="td-num" style="color:${pc};font-weight:700">${t.pnl_r>0?'+':''}${t.pnl_r}R</td>
+      <td><span class="badge ${rc}">${t.result}</span></td>
+      <td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">${t.risk}</td>
+      <td style="font-size:10.5px;color:var(--text2)">${t.rules||'—'}</td>
+      <td style="font-size:10.5px;color:var(--text2)">${t.emotion||'—'}</td>
+      <td>${t._src==='manual'?`<button class="btn-danger" onclick="deleteTrade(${t._id})">✕</button>`:'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderKPIs();
+  renderEquity();
+  renderDonut();
+  renderPairs();
+  renderSetups();
+  renderSessions();
+  renderInsights();
+  renderDashTable();
+  setDefaultDatetime();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   EXPORT / IMPORT
+═══════════════════════════════════════════════════════════ */
+function exportTrades() {
+  const trades = getNewTrades();
+  if (!trades.length) {
+    alert('No manually logged trades to export yet.\nLog some trades first using the New Trade page.');
+    return;
+  }
+  const data = JSON.stringify(trades, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trading-journal-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportAll() {
+  const newTrades = getNewTrades();
+  const histFormatted = HIST.map(t => ({
+    id: 'hist_' + t.id,
+    source: 'notion',
+    datetime: t.date,
+    pair: t.pair,
+    direction: t.direction,
+    session: t.session,
+    model: t.setup,
+    type: t.type,
+    rr: t.rr ? String(t.rr) : '',
+    result: t.result,
+    pnl_r: t.pnl_r,
+    lessons: t.notes || '',
+  }));
+  const combined = [...newTrades, ...histFormatted];
+  const data = JSON.stringify(combined, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trading-journal-ALL-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importTrades() {
+  document.getElementById('import-file-input').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error('Invalid format');
+      const existing = getNewTrades();
+      const existingIds = new Set(existing.map(t => t.id));
+      const newOnes = imported.filter(t => !existingIds.has(t.id));
+      const merged = [...existing, ...newOnes];
+      saveNewTrades(merged);
+      renderTradesTable();
+      alert(`✓ Import complete.\n${newOnes.length} new trades added.\n${imported.length - newOnes.length} duplicates skipped.`);
+    } catch(err) {
+      alert('Import failed — invalid file.\nPlease use a .json file exported from this app.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// Reinit dashboard animations when switching back to it
+document.querySelector('[data-page="dashboard"]').addEventListener('click', () => {
+  setTimeout(() => { renderDashTable(dashFilter); }, 50);
+});
+document.querySelector('[data-page="new-trade"]').addEventListener('click', () => {
+  setDefaultDatetime();
+});
+</script>
+</body>
+</html>
