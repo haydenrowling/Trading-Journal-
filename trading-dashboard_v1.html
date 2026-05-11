@@ -411,6 +411,137 @@ select.fi { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 .btn-danger:hover { background:rgba(240,79,79,0.2); }
 
 /* ════════════════════════════════════════════════
+   TRADE DETAIL PANEL
+════════════════════════════════════════════════ */
+tbody tr.clickable-row { cursor:pointer; }
+tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
+
+.panel-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+.panel-overlay.open { opacity:1; pointer-events:all; }
+
+.trade-panel {
+  position: fixed; top:0; right:0; bottom:0; z-index:201;
+  width: min(600px, 100vw);
+  background: #0d1225;
+  border-left: 1px solid var(--border2);
+  box-shadow: -24px 0 80px rgba(0,0,0,0.6);
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.16,1,0.3,1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.trade-panel.open { transform: translateX(0); }
+
+/* Panel header */
+.tp-head {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.02);
+}
+.tp-head-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap:12px; margin-bottom:12px;
+}
+.tp-pair { font-size: 22px; font-weight:800; letter-spacing:-0.02em; }
+.tp-close {
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--border);
+  background:transparent; color:var(--text3); font-size:16px; line-height:1;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  flex-shrink:0; transition:all 0.18s;
+}
+.tp-close:hover { border-color:var(--border2); color:var(--text); background:var(--surface); }
+.tp-badges { display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+.tp-meta { font-family:var(--mono); font-size:10.5px; color:var(--text3); margin-top:10px; display:flex; gap:14px; flex-wrap:wrap; }
+.tp-meta span { display:flex; align-items:center; gap:5px; }
+
+/* Quick stats strip */
+.tp-stats {
+  display: flex; gap:0; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap;
+}
+.tp-stat {
+  flex:1; min-width:90px; padding:13px 16px; border-right:1px solid var(--border);
+  display:flex; flex-direction:column; gap:4px;
+}
+.tp-stat:last-child { border-right:none; }
+.tp-stat-lbl { font-family:var(--mono); font-size:8.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); }
+.tp-stat-val { font-family:var(--mono); font-size:14px; font-weight:700; }
+
+/* Panel scrollable body */
+.tp-body {
+  flex:1; overflow-y:auto; padding:22px 24px 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.tp-body::-webkit-scrollbar { width:5px; }
+.tp-body::-webkit-scrollbar-track { background:transparent; }
+.tp-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:3px; }
+
+/* Panel sections */
+.tp-section { margin-bottom:24px; }
+.tp-section-lbl {
+  font-size: 8.5px; font-family:var(--mono); letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--text3); margin-bottom:12px; padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.tp-field { margin-bottom:14px; }
+.tp-field:last-child { margin-bottom:0; }
+.tp-field-lbl { font-size:10px; font-family:var(--mono); color:var(--text3); letter-spacing:0.06em; margin-bottom:5px; text-transform:uppercase; }
+.tp-field-val { font-size:12.5px; color:var(--text); line-height:1.6; }
+.tp-field-val.mono { font-family:var(--mono); }
+.tp-field-val.muted { color:var(--text2); }
+.tp-field-val.empty { color:var(--text3); font-style:italic; font-size:11.5px; }
+
+/* Grid layout for fields */
+.tp-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.tp-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+/* Tag pills inside panel */
+.tp-pills { display:flex; flex-wrap:wrap; gap:6px; }
+.tp-pill {
+  font-size:11px; padding:4px 11px; border-radius:20px;
+  border:1px solid rgba(59,130,246,0.3);
+  background:var(--blue-dim); color:var(--blue-lt);
+  font-weight:500; white-space:nowrap;
+}
+.tp-pill.green { border-color:rgba(0,217,126,0.3); background:var(--green-dim); color:var(--green); }
+.tp-pill.gold  { border-color:rgba(240,180,41,0.3); background:var(--gold-dim); color:var(--gold); }
+
+/* Chart link */
+.tp-chart-link {
+  display:inline-flex; align-items:center; gap:7px; padding:8px 13px;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--rsm);
+  color:var(--blue-lt); font-size:12px; text-decoration:none; transition:all 0.18s;
+  font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.tp-chart-link:hover { border-color:var(--blue); background:var(--blue-dim); }
+.tp-chart-link .lk-ico { font-size:14px; flex-shrink:0; }
+.tp-links-col { display:flex; flex-direction:column; gap:8px; }
+
+/* Source pill in panel */
+.src-notion { font-family:var(--mono); font-size:9px; color:var(--gold); background:var(--gold-dim); border:1px solid rgba(240,180,41,0.25); padding:2px 8px; border-radius:10px; }
+.src-manual  { font-family:var(--mono); font-size:9px; color:var(--blue-lt); background:var(--blue-dim); border:1px solid rgba(59,130,246,0.2); padding:2px 8px; border-radius:10px; }
+
+/* Divider rule */
+.tp-rule { height:1px; background:var(--border); margin:6px 0 22px; }
+
+/* Notion-only note block */
+.tp-notion-note {
+  background:rgba(240,180,41,0.06); border:1px solid rgba(240,180,41,0.15);
+  border-radius:var(--rsm); padding:14px 16px; font-size:12.5px; line-height:1.65; color:var(--text);
+}
+.tp-notion-notice {
+  background:rgba(255,255,255,0.03); border:1px solid var(--border);
+  border-radius:var(--rsm); padding:12px 14px; font-size:11px;
+  color:var(--text3); font-family:var(--mono); text-align:center;
+}
+
+/* ════════════════════════════════════════════════
    PLACEHOLDER PAGES
 ════════════════════════════════════════════════ */
 .coming-soon {
@@ -1025,6 +1156,28 @@ select.fi { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════
+     TRADE DETAIL PANEL
+════════════════════════════════════════════════ -->
+<div class="panel-overlay" id="panel-overlay" onclick="closeTradePanel()"></div>
+<div class="trade-panel" id="trade-panel">
+  <!-- Header -->
+  <div class="tp-head">
+    <div class="tp-head-top">
+      <div>
+        <div class="tp-pair" id="tp-pair">—</div>
+        <div class="tp-badges" id="tp-badges" style="margin-top:8px"></div>
+      </div>
+      <button class="tp-close" onclick="closeTradePanel()" title="Close">✕</button>
+    </div>
+    <div class="tp-meta" id="tp-meta"></div>
+  </div>
+  <!-- Quick stats strip -->
+  <div class="tp-stats" id="tp-stats"></div>
+  <!-- Scrollable body -->
+  <div class="tp-body" id="tp-body"></div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════
    NAV ROUTING
@@ -1483,6 +1636,7 @@ function submitTrade() {
    TRADES PAGE
 ═══════════════════════════════════════════════════════════ */
 let tradesFilter = 'All';
+let _renderedTrades = []; // for panel lookup
 
 function deleteTrade(id) {
   if(!confirm('Delete this trade?')) return;
@@ -1585,7 +1739,7 @@ function renderTradesTable() {
     const pc=t.pnl_r>0?'var(--green)':t.pnl_r<0?'var(--red)':'var(--text3)';
     const dc=t.direction==='Long'?'var(--green)':t.direction==='Short'?'var(--red)':'var(--text3)';
     const srcBadge=t._src==='manual'?`<span style="font-family:var(--mono);font-size:9px;color:var(--blue-lt);background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);padding:2px 7px;border-radius:10px">NEW</span>`:'';
-    return `<tr>
+    return `<tr class="clickable-row" onclick="openTradePanel(${i})">
       <td class="td-dim">${filtered.length-i}</td>
       <td class="td-num" style="font-size:10.5px">${t.date}</td>
       <td><strong>${t.pair}</strong> ${srcBadge}</td>
@@ -1599,9 +1753,226 @@ function renderTradesTable() {
       <td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">${t.risk}</td>
       <td style="font-size:10.5px;color:var(--text2)">${t.rules||'—'}</td>
       <td style="font-size:10.5px;color:var(--text2)">${t.emotion||'—'}</td>
-      <td>${t._src==='manual'?`<button class="btn-danger" onclick="deleteTrade(${t._id})">✕</button>`:'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+      <td onclick="event.stopPropagation()">${t._src==='manual'?`<button class="btn-danger" onclick="deleteTrade(${t._id})">✕</button>`:'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
     </tr>`;
   }).join('');
+  _renderedTrades = filtered;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRADE DETAIL PANEL
+═══════════════════════════════════════════════════════════ */
+function openTradePanel(idx) {
+  const t = _renderedTrades[idx];
+  if (!t) return;
+
+  const isManual = t._src === 'manual';
+  let raw = null;
+  if (isManual && t._id != null) {
+    const all = getNewTrades();
+    raw = all.find(x => x.id === t._id) || null;
+  }
+
+  // ── Header ──────────────────────────────────────────
+  document.getElementById('tp-pair').textContent = t.pair || '—';
+
+  const rClass = t.result==='Win' ? 'bw' : t.result==='Loss' ? 'bl' : 'bb';
+  const dColor = t.direction==='Long' ? 'var(--green)' : t.direction==='Short' ? 'var(--red)' : 'var(--text3)';
+  document.getElementById('tp-badges').innerHTML = `
+    <span class="badge ${rClass}">${t.result||'—'}</span>
+    ${t.direction ? `<span style="font-size:11px;font-weight:700;color:${dColor};background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:20px;border:1px solid var(--border)">${t.direction}</span>` : ''}
+    <span class="${isManual ? 'src-manual' : 'src-notion'}">${isManual ? 'MANUALLY LOGGED' : 'NOTION IMPORT'}</span>
+  `;
+  document.getElementById('tp-meta').innerHTML = `
+    <span>📅 ${t.date||'—'}</span>
+    <span>🕐 ${t.session||'—'}</span>
+    ${raw && raw.datetime ? `<span>${raw.datetime.replace('T',' ')}</span>` : ''}
+  `;
+
+  // ── Quick stats strip ────────────────────────────────
+  const pnlColor = t.pnl_r > 0 ? 'var(--green)' : t.pnl_r < 0 ? 'var(--red)' : 'var(--text3)';
+  const riskVal = (raw && raw.risk) ? raw.risk+'%' : (t.risk && t.risk!=='—' ? t.risk+'%' : '—');
+  const stats = [
+    { lbl: 'P&L (R)',   val: `<span style="color:${pnlColor}">${t.pnl_r > 0 ? '+' : ''}${t.pnl_r}R</span>` },
+    { lbl: 'R Target',  val: t.rr || '—' },
+    { lbl: 'Risk %',    val: riskVal },
+    { lbl: 'Type',      val: t.type || '—' },
+    { lbl: 'Duration',  val: (raw && raw.duration) ? raw.duration : '—' },
+  ];
+  document.getElementById('tp-stats').innerHTML = stats.map(s =>
+    `<div class="tp-stat"><div class="tp-stat-lbl">${s.lbl}</div><div class="tp-stat-val">${s.val}</div></div>`
+  ).join('');
+
+  // ── Body ─────────────────────────────────────────────
+  const body = document.getElementById('tp-body');
+  let html = '';
+
+  if (isManual && raw) {
+    // SETUP & ENTRY
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Setup &amp; Entry</div>
+      <div class="tp-grid2">
+        ${tpField('Entry Model', raw.model)}
+        ${tpField('Entry Type', raw.entryType)}
+        ${tpField('Entry Timeframe', raw.tf)}
+        ${tpField('Execution / Bias', raw.execution)}
+        ${tpField('Pro/Counter Trend', raw.protrend)}
+        ${tpField('Result Method', raw.resultMethod)}
+      </div>
+      ${raw.target ? `<div class="tp-field" style="margin-top:12px">${tpField('Target', raw.target)}</div>` : ''}
+    </div>`;
+
+    // CONDITIONS & CONFLUENCES
+    const conditions  = raw.conditions  && raw.conditions.length  ? raw.conditions  : null;
+    const confluences = raw.confluences && raw.confluences.length ? raw.confluences : null;
+    if (conditions || confluences) {
+      html += `<div class="tp-section"><div class="tp-section-lbl">Conditions &amp; Confluences</div>`;
+      if (conditions) html += `<div class="tp-field">
+        <div class="tp-field-lbl">HTF / MTF / LTF Conditions</div>
+        <div class="tp-pills">${conditions.map(c=>`<span class="tp-pill gold">${c}</span>`).join('')}</div>
+      </div>`;
+      if (confluences) html += `<div class="tp-field" style="margin-top:${conditions?'12px':'0'}">
+        <div class="tp-field-lbl">Trade Confluences</div>
+        <div class="tp-pills">${confluences.map(c=>`<span class="tp-pill">${c}</span>`).join('')}</div>
+      </div>`;
+      html += `</div>`;
+    }
+
+    // RESULT
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Result</div>
+      <div class="tp-grid3">
+        ${tpField('Outcome', raw.result, raw.result==='Win'?'var(--green)':raw.result==='Loss'?'var(--red)':'var(--text2)')}
+        ${tpField('R Multiple', raw.rr ? raw.rr+'R' : '—')}
+        ${tpField('Result Method', raw.resultMethod)}
+      </div>
+      ${raw.reason ? `<div class="tp-field" style="margin-top:12px">${tpField('Reason for Loss', raw.reason)}</div>` : ''}
+    </div>`;
+
+    // RISK & EXECUTION
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Risk &amp; Execution</div>
+      <div class="tp-grid3">
+        ${tpField('Account Risk', raw.risk ? raw.risk+'%' : '—')}
+        ${tpField('News Context', raw.news)}
+        ${tpField('Volatility', raw.vol)}
+      </div>`;
+    if (raw.sl || raw.entryConf || raw.be || raw.reentry || raw.lfBreak || raw.mfBreak) {
+      html += `<div class="tp-grid2" style="margin-top:12px">
+        ${tpField('Stop Loss / Covering', raw.sl)}
+        ${tpField('Entry + Confirmation', raw.entryConf)}
+        ${tpField('Breakeven Criteria', raw.be)}
+        ${tpField('Re-entry Criteria', raw.reentry)}
+        ${tpField('1M / 3M / 5M Break', raw.lfBreak)}
+        ${tpField('15M / 30M / 1HR Break', raw.mfBreak)}
+      </div>`;
+    }
+    html += `</div>`;
+
+    // RULES & PSYCHOLOGY
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Rules &amp; Psychology</div>
+      <div class="tp-grid2">
+        ${tpField('Rules Followed', raw.rules)}
+        ${tpField('Emotional State', raw.emotion)}
+      </div>
+      ${raw.rulesReason ? `<div class="tp-field" style="margin-top:12px">${tpField('Rules Broken — Reason', raw.rulesReason)}</div>` : ''}
+      ${raw.psych ? `<div class="tp-field" style="margin-top:12px">${tpField('Psychology / Pre-trade Notes', raw.psych)}</div>` : ''}
+    </div>`;
+
+    // MARKET ANALYSIS
+    if (raw.htf || raw.dxy || raw.ext || raw.newsInf) {
+      html += `<div class="tp-section">
+        <div class="tp-section-lbl">Market Analysis</div>
+        ${raw.htf  ? tpField('HTF Analysis — 4HR / Daily / Weekly', raw.htf) : ''}
+        ${raw.dxy  ? `<div style="margin-top:12px">${tpField('DXY Analysis — 4HR / Daily / Weekly', raw.dxy)}</div>` : ''}
+        ${raw.ext  ? `<div style="margin-top:12px">${tpField('External Factors — 15M / 30M AU / DXY', raw.ext)}</div>` : ''}
+        ${raw.newsInf ? `<div style="margin-top:12px">${tpField('News Influence', raw.newsInf)}</div>` : ''}
+      </div>`;
+    }
+
+    // REVIEW & LESSONS
+    if (raw.lessons) {
+      html += `<div class="tp-section">
+        <div class="tp-section-lbl">Review &amp; Lessons</div>
+        ${tpField('Teachings / Learning Curve', raw.lessons)}
+      </div>`;
+    }
+
+    // CHART LINKS
+    if (raw.tv1 || raw.tv2 || raw.dxyChart) {
+      html += `<div class="tp-section">
+        <div class="tp-section-lbl">Chart Links</div>
+        <div class="tp-links-col">
+          ${raw.tv1     ? `<a class="tp-chart-link" href="${raw.tv1}"      target="_blank" rel="noopener"><span class="lk-ico">📈</span><span>1M / 3M Chart</span><span style="margin-left:auto;font-size:9.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;max-width:180px">${raw.tv1}</span></a>` : ''}
+          ${raw.tv2     ? `<a class="tp-chart-link" href="${raw.tv2}"      target="_blank" rel="noopener"><span class="lk-ico">📊</span><span>15M / 30M Chart</span><span style="margin-left:auto;font-size:9.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;max-width:180px">${raw.tv2}</span></a>` : ''}
+          ${raw.dxyChart? `<a class="tp-chart-link" href="${raw.dxyChart}" target="_blank" rel="noopener"><span class="lk-ico">💵</span><span>DXY Chart</span><span style="margin-left:auto;font-size:9.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;max-width:180px">${raw.dxyChart}</span></a>` : ''}
+        </div>
+      </div>`;
+    }
+
+  } else {
+    // NOTION IMPORT
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Setup</div>
+      <div class="tp-grid2">
+        ${tpField('Setup / Model', t.setup)}
+        ${tpField('Trade Type', t.type)}
+        ${tpField('Direction', t.direction)}
+        ${tpField('Session', t.session)}
+      </div>
+    </div>`;
+
+    // Pull notes from HIST
+    const histEntry = HIST.find(h =>
+      h.date === t.date && h.pair === t.pair &&
+      h.session === t.session && h.result === t.result
+    );
+    if (histEntry && histEntry.notes) {
+      html += `<div class="tp-section">
+        <div class="tp-section-lbl">Notes</div>
+        <div class="tp-notion-note">${escHtml(histEntry.notes)}</div>
+      </div>`;
+    }
+
+    html += `<div class="tp-section">
+      <div class="tp-section-lbl">Data Availability</div>
+      <div class="tp-notion-notice">
+        ℹ️ &nbsp;This trade was imported from Notion. Only the fields available in the original export are shown above.<br>
+        <span style="color:var(--text3);margin-top:6px;display:block">Log future trades with the <strong style="color:var(--text2)">New Trade</strong> form to get the full picture here.</span>
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+  body.scrollTop = 0;
+
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('trade-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTradePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('trade-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTradePanel(); });
+
+function tpField(label, value, color) {
+  const empty = !value || value === '—' || String(value).trim() === '';
+  const style = color ? ` style="color:${color}"` : '';
+  return `<div class="tp-field">
+    <div class="tp-field-lbl">${label}</div>
+    <div class="tp-field-val${empty ? ' empty' : ''}"${style}>${empty ? 'Not recorded' : escHtml(String(value))}</div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
 }
 
 /* ═══════════════════════════════════════════════════════════
