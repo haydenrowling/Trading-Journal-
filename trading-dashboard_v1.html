@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gold Trading Journal</title>
+<title>Ultimate Trading Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ════════════════════════════════════════════════
@@ -584,7 +584,7 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
   <div class="nav-logo">
     <div class="nav-logo-icon">📈</div>
     <div>
-      <div class="nav-logo-text">Gold Trading Journal</div>
+      <div class="nav-logo-text">Ultimate Trading Dashboard</div>
       <div class="nav-logo-sync">✓ Synced</div>
     </div>
   </div>
@@ -1139,11 +1139,668 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
      PLACEHOLDER PAGES
 ════════════════════════════════════════════════ -->
 <div class="page" id="page-pre-trade">
-  <div class="coming-soon">
-    <div class="cs-icon">📋</div>
-    <div class="cs-title">Pre-Trade Checklist</div>
-    <div class="cs-sub">A structured pre-trade analysis workflow — bias, HTF read, session context — coming soon.</div>
+<style>
+/* ════════════════════════════════════════
+   PRE-TRADE PAGE STYLES
+════════════════════════════════════════ */
+.pt-wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+.pt-header { padding: 36px 0 28px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.pt-title { font-size: clamp(20px,3vw,28px); font-weight: 800; letter-spacing: -0.02em; }
+.pt-sub { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-top: 5px; }
+
+/* Scoring HUD */
+.pt-hud {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+@media(max-width:680px){ .pt-hud{ grid-template-columns:1fr; } }
+
+.pt-score-ring {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px 24px;
+  backdrop-filter: blur(20px);
+  position: relative; overflow: hidden;
+}
+.pt-score-ring::before {
+  content:''; position:absolute; top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);
+}
+.pt-ring-wrap { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+.pt-ring-wrap svg { width: 88px; height: 88px; transform: rotate(-90deg); }
+.pt-ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.pt-ring-num { font-family: var(--mono); font-size: 22px; font-weight: 800; line-height: 1; transition: color 0.4s; }
+.pt-ring-denom { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.06em; }
+.pt-score-info { flex: 1; }
+.pt-score-label { font-size: 9.5px; font-family: var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.pt-verdict {
+  font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+  transition: color 0.4s;
+}
+.pt-verdict-sub { font-size: 11.5px; color: var(--text3); margin-top: 4px; font-family: var(--mono); line-height: 1.5; }
+
+.pt-score-bars { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.pt-bar-row { display: flex; align-items: center; gap: 10px; }
+.pt-bar-lbl { font-size: 10px; font-family: var(--mono); color: var(--text3); width: 100px; flex-shrink: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.pt-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; }
+.pt-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.5s cubic-bezier(0.16,1,0.3,1), background 0.4s; }
+.pt-bar-val { font-family: var(--mono); font-size: 10px; font-weight: 700; width: 28px; text-align: right; flex-shrink: 0; }
+
+/* Form cards */
+.pt-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px 28px;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.pt-card::before {
+  content:''; position:absolute; top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.10),transparent);
+}
+.pt-section-label {
+  font-size: 9px; font-family: var(--mono); letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 20px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.pt-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.pt-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+@media(max-width:680px){ .pt-grid2,.pt-grid3{ grid-template-columns:1fr; } }
+@media(max-width:900px){ .pt-grid3{ grid-template-columns:1fr 1fr; } }
+
+/* Bias selector buttons */
+.pt-bias-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.pt-bias-btn {
+  flex: 1; min-width: 80px;
+  padding: 10px 12px;
+  border-radius: var(--rsm);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text3);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.pt-bias-btn .bb-icon { font-size: 16px; }
+.pt-bias-btn:hover { border-color: var(--border2); color: var(--text2); background: var(--surface2); }
+.pt-bias-btn.on-bull { background: var(--green-dim); border-color: rgba(0,217,126,0.35); color: var(--green); }
+.pt-bias-btn.on-bear { background: var(--red-dim);   border-color: rgba(240,79,79,0.35);   color: var(--red); }
+.pt-bias-btn.on-neut { background: rgba(255,255,255,0.06); border-color: var(--border2); color: var(--text2); }
+
+/* Confluence counter */
+.pt-conf-counter {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  border-radius: var(--rsm); padding: 12px 16px; width: fit-content;
+}
+.pt-conf-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text2); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.pt-conf-btn:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+.pt-conf-num { font-family: var(--mono); font-size: 32px; font-weight: 800; min-width: 44px; text-align: center; transition: color 0.3s; }
+.pt-conf-label { font-family: var(--mono); font-size: 9.5px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Select row (reuse .fi from global styles) */
+
+/* Checklist section */
+.pt-checklist { display: flex; flex-direction: column; gap: 12px; }
+.pt-check-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px; border-radius: var(--rsm);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.025);
+  cursor: pointer; transition: all 0.18s; user-select: none;
+}
+.pt-check-item:hover { border-color: var(--border2); background: rgba(255,255,255,0.04); }
+.pt-check-box {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 1.5px solid var(--border2); background: transparent;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.18s; margin-top: 1px;
+}
+.pt-check-item.checked .pt-check-box {
+  background: var(--green); border-color: var(--green); color: #000;
+}
+.pt-check-text { font-size: 13px; line-height: 1.55; color: var(--text2); }
+.pt-check-item.checked .pt-check-text { color: var(--text3); text-decoration: line-through; text-decoration-color: rgba(0,217,126,0.4); }
+.pt-check-num { font-family: var(--mono); font-size: 9.5px; color: var(--text3); margin-top: 3px; display: block; }
+
+/* CTA row */
+.pt-cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
+.pt-btn-go {
+  flex: 1; min-width: 180px;
+  padding: 14px 24px; border-radius: var(--r);
+  border: none; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.22s;
+  font-family: var(--sans); letter-spacing: -0.01em;
+}
+.pt-btn-go.go-active {
+  background: linear-gradient(135deg,#00d97e,#00b868);
+  color: #000; box-shadow: 0 0 28px rgba(0,217,126,0.25);
+}
+.pt-btn-go.go-active:hover { transform: translateY(-1px); box-shadow: 0 4px 36px rgba(0,217,126,0.35); }
+.pt-btn-go.nogo-active {
+  background: linear-gradient(135deg,#f04f4f,#c73434);
+  color: #fff; box-shadow: 0 0 28px rgba(240,79,79,0.22);
+}
+.pt-btn-go.warn-active {
+  background: linear-gradient(135deg,#f0b429,#d4960d);
+  color: #000; box-shadow: 0 0 28px rgba(240,180,41,0.22);
+}
+.pt-btn-go.neutral { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+.pt-reset-btn {
+  padding: 13px 20px; border-radius: var(--r); border: 1px solid var(--border);
+  background: transparent; color: var(--text3); font-size: 13px;
+  cursor: pointer; transition: all 0.18s; font-family: var(--sans);
+}
+.pt-reset-btn:hover { border-color: var(--border2); color: var(--text2); }
+
+/* Notes field */
+.pt-notes { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:var(--rsm); color:var(--text); font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.2s; resize:vertical; min-height:72px; line-height:1.55; font-family:var(--sans); }
+.pt-notes:focus { border-color:rgba(59,130,246,0.55); background:rgba(59,130,246,0.05); }
+.pt-notes::placeholder { color:var(--text3); }
+
+/* Verdict banner */
+.pt-verdict-banner {
+  padding: 14px 20px; border-radius: var(--r);
+  font-size: 13px; line-height: 1.55; font-family: var(--mono);
+  border: 1px solid var(--border); background: var(--surface);
+  transition: all 0.4s; margin-top: 16px;
+}
+.pt-verdict-banner.go   { background: var(--green-dim); border-color: rgba(0,217,126,0.3); color: var(--green); }
+.pt-verdict-banner.warn { background: var(--gold-dim);  border-color: rgba(240,180,41,0.3); color: var(--gold); }
+.pt-verdict-banner.nogo { background: var(--red-dim);   border-color: rgba(240,79,79,0.3);   color: var(--red); }
+.pt-field-label { font-size: 11.5px; font-weight: 500; color: var(--text2); margin-bottom: 8px; display: block; }
+.pt-field-hint { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: -4px; margin-bottom: 8px; display: block; }
+</style>
+
+<div class="pt-wrap">
+  <header class="pt-header fu d0">
+    <div>
+      <div class="pt-title">Pre-Trade Analysis</div>
+      <div class="pt-sub">Complete before every entry · Forces deliberate process · Eliminates impulse trades</div>
+    </div>
+  </header>
+
+  <!-- SCORE HUD -->
+  <div class="pt-hud fu d0">
+    <div class="pt-score-ring">
+      <div class="pt-ring-wrap">
+        <svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+          <circle id="pt-ring-arc" cx="44" cy="44" r="36" fill="none" stroke="#3b82f6" stroke-width="10"
+            stroke-dasharray="0 226.2" stroke-linecap="round" style="transition:stroke-dasharray 0.55s cubic-bezier(0.16,1,0.3,1),stroke 0.4s"/>
+        </svg>
+        <div class="pt-ring-center">
+          <span class="pt-ring-num" id="pt-ring-num" style="color:var(--text3)">0</span>
+          <span class="pt-ring-denom">/ 15</span>
+        </div>
+      </div>
+      <div class="pt-score-info">
+        <div class="pt-score-label">Trade Score</div>
+        <div class="pt-verdict" id="pt-verdict-main" style="color:var(--text3)">Fill in the form</div>
+        <div class="pt-verdict-sub" id="pt-verdict-sub">Complete all sections to receive your go / no-go signal</div>
+      </div>
+      <div class="pt-score-bars" id="pt-score-bars" style="max-width:220px">
+        <div class="pt-bar-row"><span class="pt-bar-lbl">HTF Bias</span><div class="pt-bar-track"><div class="pt-bar-fill" id="pb-htf" style="width:0%;background:var(--blue)"></div></div><span class="pt-bar-val" id="pv-htf" style="color:var(--text3)">—</span></div>
+        <div class="pt-bar-row"><span class="pt-bar-lbl">Session</span><div class="pt-bar-track"><div class="pt-bar-fill" id="pb-sess" style="width:0%;background:var(--blue)"></div></div><span class="pt-bar-val" id="pv-sess" style="color:var(--text3)">—</span></div>
+        <div class="pt-bar-row"><span class="pt-bar-lbl">DXY Read</span><div class="pt-bar-track"><div class="pt-bar-fill" id="pb-dxy" style="width:0%;background:var(--blue)"></div></div><span class="pt-bar-val" id="pv-dxy" style="color:var(--text3)">—</span></div>
+        <div class="pt-bar-row"><span class="pt-bar-lbl">Confluences</span><div class="pt-bar-track"><div class="pt-bar-fill" id="pb-conf" style="width:0%;background:var(--blue)"></div></div><span class="pt-bar-val" id="pv-conf" style="color:var(--text3)">—</span></div>
+        <div class="pt-bar-row"><span class="pt-bar-lbl">Checklist</span><div class="pt-bar-track"><div class="pt-bar-fill" id="pb-chk" style="width:0%;background:var(--blue)"></div></div><span class="pt-bar-val" id="pv-chk" style="color:var(--text3)">—</span></div>
+      </div>
+    </div>
   </div>
+
+  <!-- SECTION 1: MARKET CONTEXT -->
+  <div class="pt-card fu d1">
+    <div class="pt-section-label">01 — Market Context</div>
+    <div class="pt-grid3" style="margin-bottom:22px">
+      <div>
+        <label class="pt-field-label">Session</label>
+        <span class="pt-field-hint">Current active session</span>
+        <select class="fi" id="pt-session" onchange="ptCalc()">
+          <option value="">Select session…</option>
+          <option value="3">London &nbsp;(Primary)</option>
+          <option value="3">New York &nbsp;(Primary)</option>
+          <option value="2">Asia &nbsp;(Secondary)</option>
+          <option value="2">Asia / London Overlap</option>
+          <option value="2">London / NY Overlap</option>
+          <option value="1">Sydney &nbsp;(Low activity)</option>
+          <option value="0">Off-session &nbsp;(Avoid)</option>
+        </select>
+      </div>
+      <div>
+        <label class="pt-field-label">News / High-Impact Events</label>
+        <span class="pt-field-hint">Within next 2hrs?</span>
+        <select class="fi" id="pt-news" onchange="ptCalc()">
+          <option value="">Select…</option>
+          <option value="0">Yes — high impact imminent</option>
+          <option value="1">Yes — low / medium impact</option>
+          <option value="1">No upcoming news</option>
+        </select>
+      </div>
+      <div>
+        <label class="pt-field-label">Trade Type</label>
+        <span class="pt-field-hint">What are you logging this as?</span>
+        <select class="fi" id="pt-trade-type" onchange="ptCalc()">
+          <option value="">Select…</option>
+          <option>Live</option>
+          <option>Forward Test</option>
+          <option>Back Test</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: HTF BIAS -->
+  <div class="pt-card fu d2">
+    <div class="pt-section-label">02 — HTF Bias &amp; Structure</div>
+    <div class="pt-grid2" style="margin-bottom:18px">
+      <div>
+        <label class="pt-field-label">4HR / Daily / Weekly Bias</label>
+        <span class="pt-field-hint">What is price doing at the highest timeframe?</span>
+        <div class="pt-bias-group" id="pt-htf-bias">
+          <button class="pt-bias-btn" data-val="bull" onclick="ptBias('pt-htf-bias',this,'bull')"><span class="bb-icon">↑</span>Bullish</button>
+          <button class="pt-bias-btn" data-val="bear" onclick="ptBias('pt-htf-bias',this,'bear')"><span class="bb-icon">↓</span>Bearish</button>
+          <button class="pt-bias-btn" data-val="neut" onclick="ptBias('pt-htf-bias',this,'neut')"><span class="bb-icon">↔</span>Neutral</button>
+        </div>
+      </div>
+      <div>
+        <label class="pt-field-label">Trade Direction</label>
+        <span class="pt-field-hint">The direction you intend to enter</span>
+        <div class="pt-bias-group" id="pt-direction">
+          <button class="pt-bias-btn" data-val="bull" onclick="ptBias('pt-direction',this,'bull')"><span class="bb-icon">↑</span>Long</button>
+          <button class="pt-bias-btn" data-val="bear" onclick="ptBias('pt-direction',this,'bear')"><span class="bb-icon">↓</span>Short</button>
+        </div>
+      </div>
+    </div>
+    <div class="pt-grid2">
+      <div>
+        <label class="pt-field-label">HTF Analysis Notes</label>
+        <textarea class="pt-notes" id="pt-htf-notes" placeholder="4HR / Daily / Weekly structure, key levels, protected highs/lows…" rows="3"></textarea>
+      </div>
+      <div>
+        <label class="pt-field-label">MTF / LTF Confirmation</label>
+        <span class="pt-field-hint">Lower timeframe aligned?</span>
+        <select class="fi" id="pt-mtf" onchange="ptCalc()" style="margin-bottom:8px">
+          <option value="">Select…</option>
+          <option value="1">Yes — all TF aligned</option>
+          <option value="1">Yes — MTF aligned</option>
+          <option value="0">Partial — mixed signals</option>
+          <option value="0">No — counter-trend</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: DXY READ -->
+  <div class="pt-card fu d3">
+    <div class="pt-section-label">03 — DXY Read</div>
+    <div class="pt-grid2" style="margin-bottom:18px">
+      <div>
+        <label class="pt-field-label">DXY 4HR / Daily Bias</label>
+        <span class="pt-field-hint">DXY direction — inverse relationship to AU/Gold</span>
+        <div class="pt-bias-group" id="pt-dxy-bias">
+          <button class="pt-bias-btn" data-val="bull" onclick="ptBias('pt-dxy-bias',this,'bull')"><span class="bb-icon">↑</span>Bullish</button>
+          <button class="pt-bias-btn" data-val="bear" onclick="ptBias('pt-dxy-bias',this,'bear')"><span class="bb-icon">↓</span>Bearish</button>
+          <button class="pt-bias-btn" data-val="neut" onclick="ptBias('pt-dxy-bias',this,'neut')"><span class="bb-icon">↔</span>Neutral</button>
+        </div>
+      </div>
+      <div>
+        <label class="pt-field-label">DXY Alignment with Trade</label>
+        <span class="pt-field-hint">Does DXY support your intended trade direction?</span>
+        <select class="fi" id="pt-dxy-align" onchange="ptCalc()">
+          <option value="">Select…</option>
+          <option value="3">Strongly supports (inverse aligned)</option>
+          <option value="2">Partially supports</option>
+          <option value="1">Neutral / No read</option>
+          <option value="0">Working against the trade</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="pt-field-label">DXY Notes</label>
+      <textarea class="pt-notes" id="pt-dxy-notes" placeholder="DXY structure, key levels, correlation strength with your pair…" rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- SECTION 4: CONFLUENCE COUNT -->
+  <div class="pt-card fu d4">
+    <div class="pt-section-label">04 — Confluence Count</div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <label class="pt-field-label">Number of Confluences Present</label>
+        <span class="pt-field-hint">Count your valid technical confluences</span>
+        <div class="pt-conf-counter">
+          <button class="pt-conf-btn" onclick="ptConfAdj(-1)">−</button>
+          <div>
+            <div class="pt-conf-num" id="pt-conf-num" style="color:var(--text3)">0</div>
+            <div class="pt-conf-label">confluences</div>
+          </div>
+          <button class="pt-conf-btn" onclick="ptConfAdj(1)">+</button>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <label class="pt-field-label">Confluences Present <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
+        <div class="tag-group" id="pt-conf-tags">
+          <span class="tag-pill" data-val="Sweep" onclick="ptConfTag(this)">Sweep</span>
+          <span class="tag-pill" data-val="Divergence" onclick="ptConfTag(this)">Divergence</span>
+          <span class="tag-pill" data-val="NC" onclick="ptConfTag(this)">NC</span>
+          <span class="tag-pill" data-val="Pro-Trend" onclick="ptConfTag(this)">Pro-Trend</span>
+          <span class="tag-pill" data-val="HTF Aligned" onclick="ptConfTag(this)">HTF Aligned</span>
+          <span class="tag-pill" data-val="DXY Alignment" onclick="ptConfTag(this)">DXY Alignment</span>
+          <span class="tag-pill" data-val="3M/5M IPL" onclick="ptConfTag(this)">3M/5M IPL</span>
+          <span class="tag-pill" data-val="3M/5M BoS" onclick="ptConfTag(this)">3M/5M BoS</span>
+          <span class="tag-pill" data-val="15M IPL" onclick="ptConfTag(this)">15M IPL</span>
+          <span class="tag-pill" data-val="15M BoS" onclick="ptConfTag(this)">15M BoS</span>
+          <span class="tag-pill" data-val="Rejection Candle" onclick="ptConfTag(this)">Rejection Candle</span>
+          <span class="tag-pill" data-val="FBoS" onclick="ptConfTag(this)">FBoS</span>
+          <span class="tag-pill" data-val="Joker Sweep" onclick="ptConfTag(this)">Joker Sweep</span>
+          <span class="tag-pill" data-val="Double Confirm" onclick="ptConfTag(this)">Double Confirm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: PRE-TRADE CHECKLIST -->
+  <div class="pt-card fu d5">
+    <div class="pt-section-label">05 — Mental Checklist &nbsp;<span style="font-size:9px;color:var(--text3);letter-spacing:0.05em;text-transform:none;font-family:var(--mono)">Click each question to confirm — be honest</span></div>
+    <div class="pt-checklist" id="pt-checklist">
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Is this trade more likely to head to my TP than my SL, based purely on structure?</div>
+          <span class="pt-check-num">01 · Probability &amp; edge</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Am I taking this trade for any reason other than it following my plan <em>completely</em> — no exceptions, no bending the rules?</div>
+          <span class="pt-check-num">02 · Emotional honesty — a "yes" here means DO NOT take the trade</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Would I take this exact trade after a loss? After a win? The answer should be yes — if not, I'm trading emotionally.</div>
+          <span class="pt-check-num">03 · Emotional neutrality</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Is my risk fully defined and accepted? My SL placement is objective, my lot size is pre-calculated, and losing 1R right now is completely fine.</div>
+          <span class="pt-check-num">04 · Risk acceptance</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Would I still be comfortable if this trade stops out immediately after entry? If not, my SL is too tight or my risk is too high.</div>
+          <span class="pt-check-num">05 · Stop-out comfort</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Have I waited for full entry model confirmation — or am I anticipating / trying to catch a better price? Patience is the edge.</div>
+          <span class="pt-check-num">06 · Patience &amp; confirmation</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Is there a high-impact news event in the next 2 hours that I have not already accounted for? If yes, I either reduce risk or do not enter.</div>
+          <span class="pt-check-num">07 · News &amp; macro awareness</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Can I walk away after placing this trade and let it play out without interference? If I feel the urge to manage it immediately, I'm not ready.</div>
+          <span class="pt-check-num">08 · Post-entry discipline</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Am I in the right mental state to trade? Not tired, frustrated, euphoric, or distracted. Trading requires a clear head — full stop.</div>
+          <span class="pt-check-num">09 · Mental &amp; emotional state</span>
+        </div>
+      </div>
+
+      <div class="pt-check-item" onclick="ptCheckToggle(this)">
+        <div class="pt-check-box"></div>
+        <div>
+          <div class="pt-check-text">Have I identified where the trade is wrong — and do I accept that level as the real invalidation, not just a price I don't want to see?</div>
+          <span class="pt-check-num">10 · Invalidation clarity</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="pt-check-progress" style="margin-top:14px;font-family:var(--mono);font-size:10.5px;color:var(--text3)">0 / 10 confirmed</div>
+  </div>
+
+  <!-- SECTION 6: NOTES + CTA -->
+  <div class="pt-card fu d6">
+    <div class="pt-section-label">06 — Pre-Trade Notes</div>
+    <label class="pt-field-label">Any additional context, hesitations, or key observations before entering</label>
+    <textarea class="pt-notes" id="pt-final-notes" placeholder="Describe the setup, why you're confident, or any reservations you have…" rows="4"></textarea>
+
+    <div id="pt-verdict-banner" class="pt-verdict-banner" style="display:none"></div>
+
+    <div class="pt-cta-row">
+      <button class="pt-btn-go neutral" id="pt-go-btn" disabled onclick="ptSubmit()">Complete form for verdict</button>
+      <button class="pt-reset-btn" onclick="ptReset()">Reset form</button>
+    </div>
+  </div>
+
+</div><!-- /pt-wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   PRE-TRADE LOGIC
+═══════════════════════════════════════════════════════ */
+let ptState = {
+  htfBias: null,
+  direction: null,
+  dxyBias: null,
+  confCount: 0,
+  checkCount: 0,
+};
+
+function ptBias(groupId, btn, val) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.pt-bias-btn').forEach(b => {
+    b.classList.remove('on-bull','on-bear','on-neut');
+  });
+  btn.classList.add(val === 'bull' ? 'on-bull' : val === 'bear' ? 'on-bear' : 'on-neut');
+  if (groupId === 'pt-htf-bias') ptState.htfBias = val;
+  else if (groupId === 'pt-direction') ptState.direction = val;
+  else if (groupId === 'pt-dxy-bias') ptState.dxyBias = val;
+  ptCalc();
+}
+
+function ptConfAdj(delta) {
+  ptState.confCount = Math.max(0, Math.min(10, ptState.confCount + delta));
+  const el = document.getElementById('pt-conf-num');
+  el.textContent = ptState.confCount;
+  const colors = ['var(--text3)','var(--red)','var(--gold)','var(--gold)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)'];
+  el.style.color = colors[Math.min(ptState.confCount, 10)];
+  ptCalc();
+}
+
+function ptConfTag(el) {
+  el.classList.toggle('on');
+  // Sync counter with tag count
+  const count = document.querySelectorAll('#pt-conf-tags .tag-pill.on').length;
+  ptState.confCount = count;
+  document.getElementById('pt-conf-num').textContent = count;
+  const colors = ['var(--text3)','var(--red)','var(--gold)','var(--gold)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)'];
+  document.getElementById('pt-conf-num').style.color = colors[Math.min(count,10)];
+  ptCalc();
+}
+
+function ptCheckToggle(el) {
+  el.classList.toggle('checked');
+  if (el.classList.contains('checked')) {
+    el.querySelector('.pt-check-box').textContent = '✓';
+  } else {
+    el.querySelector('.pt-check-box').textContent = '';
+  }
+  ptState.checkCount = document.querySelectorAll('#pt-checklist .pt-check-item.checked').length;
+  document.getElementById('pt-check-progress').textContent = ptState.checkCount + ' / 10 confirmed';
+  ptCalc();
+}
+
+function ptCalc() {
+  // ── Scoring ──────────────────────────────────────
+  // HTF Bias alignment (0–4)
+  let htfScore = 0;
+  if (ptState.htfBias && ptState.direction) {
+    if (ptState.htfBias === ptState.direction) htfScore = 4;
+    else if (ptState.htfBias === 'neut')        htfScore = 2;
+    else                                         htfScore = 0;
+  }
+
+  // Session (0–3)
+  const sessEl = document.getElementById('pt-session');
+  const sessScore = sessEl.value ? parseInt(sessEl.value) : 0;
+
+  // DXY alignment (0–3)
+  const dxyEl = document.getElementById('pt-dxy-align');
+  const dxyScore = dxyEl.value ? parseInt(dxyEl.value) : 0;
+
+  // Confluence count (0–4)
+  const confScore = Math.min(ptState.confCount, 4);
+
+  // Checklist (0–4, capped)
+  const chkScore = Math.min(Math.round(ptState.checkCount / 10 * 4), 4);
+
+  const total = htfScore + sessScore + dxyScore + confScore + chkScore;
+  const maxScore = 4 + 3 + 3 + 4 + 4; // 18 possible but we show /15 for display
+
+  // Update bars
+  function setBar(fillId, valId, score, max, color) {
+    document.getElementById(fillId).style.width = (score / max * 100) + '%';
+    document.getElementById(fillId).style.background = color;
+    document.getElementById(valId).textContent = score + '/' + max;
+    document.getElementById(valId).style.color = score === 0 ? 'var(--text3)' : score >= max * 0.7 ? 'var(--green)' : score >= max * 0.4 ? 'var(--gold)' : 'var(--red)';
+  }
+  setBar('pb-htf',  'pv-htf',  htfScore,  4, htfScore >= 3 ? '#00d97e' : htfScore === 2 ? '#f0b429' : '#f04f4f');
+  setBar('pb-sess', 'pv-sess', sessScore, 3, sessScore === 3 ? '#00d97e' : sessScore === 2 ? '#f0b429' : '#f04f4f');
+  setBar('pb-dxy',  'pv-dxy',  dxyScore,  3, dxyScore >= 2 ? '#00d97e' : dxyScore === 1 ? '#f0b429' : '#f04f4f');
+  setBar('pb-conf', 'pv-conf', confScore, 4, confScore >= 3 ? '#00d97e' : confScore >= 2 ? '#f0b429' : '#f04f4f');
+  setBar('pb-chk',  'pv-chk',  chkScore,  4, chkScore >= 3 ? '#00d97e' : chkScore >= 2 ? '#f0b429' : '#f04f4f');
+
+  // Ring (display /15 to simplify UX, scale total to 15)
+  const displayMax = 15;
+  const displayScore = Math.round(total / maxScore * displayMax);
+  const arc = 226.2;
+  const fill = (displayScore / displayMax) * arc;
+  document.getElementById('pt-ring-arc').setAttribute('stroke-dasharray', fill + ' ' + arc);
+  document.getElementById('pt-ring-num').textContent = displayScore;
+
+  // Ring / verdict colour
+  let ringColor, verdictText, verdictSub, verdictClass, btnClass, btnText;
+  if (displayScore >= 11) {
+    ringColor = '#00d97e'; verdictClass = 'go';
+    verdictText = '✅ GO — High Conviction';
+    verdictSub = 'Strong alignment across all factors. This is what an A+ setup looks like. Execute with discipline.';
+    btnClass = 'go-active'; btnText = '✅ Confirm Trade Entry';
+  } else if (displayScore >= 8) {
+    ringColor = '#f0b429'; verdictClass = 'warn';
+    verdictText = '⚠️ PROCEED WITH CAUTION';
+    verdictSub = 'Setup has merit but alignment gaps exist. Reduce size to 0.5R or wait for the missing confluence.';
+    btnClass = 'warn-active'; btnText = '⚠️ Enter at Reduced Size';
+  } else if (displayScore >= 1) {
+    ringColor = '#f04f4f'; verdictClass = 'nogo';
+    verdictText = '🚫 NO-GO — Stay Out';
+    verdictSub = 'Insufficient alignment. This is likely an emotional trade. Step away. The next setup will come.';
+    btnClass = 'nogo-active'; btnText = '🚫 Do Not Enter — Walk Away';
+  } else {
+    ringColor = 'rgba(255,255,255,0.18)'; verdictClass = '';
+    verdictText = 'Fill in the form'; verdictSub = 'Complete all sections to receive your go / no-go signal';
+    btnClass = 'neutral'; btnText = 'Complete form for verdict';
+  }
+
+  document.getElementById('pt-ring-arc').setAttribute('stroke', ringColor);
+  document.getElementById('pt-ring-num').style.color = ringColor;
+  document.getElementById('pt-verdict-main').textContent = verdictText;
+  document.getElementById('pt-verdict-main').style.color = ringColor;
+  document.getElementById('pt-verdict-sub').textContent = verdictSub;
+
+  const goBtn = document.getElementById('pt-go-btn');
+  goBtn.className = 'pt-btn-go ' + btnClass;
+  goBtn.textContent = btnText;
+  goBtn.disabled = displayScore < 1;
+
+  // Store for submit
+  ptState._total = displayScore;
+  ptState._verdictClass = verdictClass;
+  ptState._verdictText = verdictText;
+  ptState._verdictSub = verdictSub;
+}
+
+function ptSubmit() {
+  const banner = document.getElementById('pt-verdict-banner');
+  banner.style.display = 'block';
+  banner.className = 'pt-verdict-banner ' + (ptState._verdictClass || '');
+  banner.innerHTML = `<strong>${ptState._verdictText}</strong> &nbsp;·&nbsp; Score: ${ptState._total}/15<br><span style="opacity:0.85">${ptState._verdictSub}</span>`;
+  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function ptReset() {
+  // Bias buttons
+  document.querySelectorAll('.pt-bias-btn').forEach(b => b.classList.remove('on-bull','on-bear','on-neut'));
+  // Selects
+  ['pt-session','pt-news','pt-trade-type','pt-dxy-align','pt-mtf'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Confluence tags
+  document.querySelectorAll('#pt-conf-tags .tag-pill').forEach(t => t.classList.remove('on'));
+  // Textareas
+  ['pt-htf-notes','pt-dxy-notes','pt-final-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Checklist
+  document.querySelectorAll('#pt-checklist .pt-check-item').forEach(el => {
+    el.classList.remove('checked');
+    el.querySelector('.pt-check-box').textContent = '';
+  });
+  document.getElementById('pt-check-progress').textContent = '0 / 10 confirmed';
+  // Banner
+  document.getElementById('pt-verdict-banner').style.display = 'none';
+  // State
+  ptState = { htfBias: null, direction: null, dxyBias: null, confCount: 0, checkCount: 0 };
+  // Conf counter display
+  document.getElementById('pt-conf-num').textContent = '0';
+  document.getElementById('pt-conf-num').style.color = 'var(--text3)';
+  ptCalc();
+}
+</script>
 </div>
 <div class="page" id="page-edge-finder">
   <div class="coming-soon">
