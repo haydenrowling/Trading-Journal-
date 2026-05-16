@@ -187,6 +187,8 @@ button { cursor: pointer; }
 .kpi.au::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(240,180,41,0.08),transparent 70%); pointer-events:none; }
 .kpi.b { border-color:rgba(59,130,246,0.2); }
 .kpi.b::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(59,130,246,0.07),transparent 70%); pointer-events:none; }
+.kpi.r { border-color:rgba(240,79,79,0.22); }
+.kpi.r::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at top left,rgba(240,79,79,0.07),transparent 70%); pointer-events:none; }
 
 /* Mid row */
 .mid-row { display:grid; grid-template-columns:1fr 1.28fr; gap:12px; margin-bottom:12px; }
@@ -255,6 +257,7 @@ button { cursor: pointer; }
 .ins-action.r  { background:var(--red-dim); color:var(--red); }
 .ins-action.b  { background:var(--blue-dim); color:var(--blue-lt); }
 .ins-action.au { background:var(--gold-dim); color:var(--gold); }
+.ins-action.r  { background:var(--red-dim); color:var(--red); }
 
 /* Table */
 .tbl-card { padding:22px; margin-bottom:12px; }
@@ -734,7 +737,7 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
         </select>
       </div>
     </div>
-    <div class="form-grid fg3" style="margin-top:18px">
+    <div class="form-grid fg2" style="margin-top:18px">
       <div class="field">
         <label class="field-label">Session<span class="req">*</span></label>
         <select class="fi" id="f-session">
@@ -745,19 +748,6 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
           <option>Asia, London</option>
           <option>London, New York</option>
           <option>Sydney</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="field-label">Pro/Counter Trend</label>
-        <select class="fi" id="f-protrend">
-          <option value="">Select…</option>
-          <option>Pro Trend 1M/3M/5M, Pro Trend 15M/30M/1HR, Pro Trend 4HR/Daily/Weekly, Trending</option>
-          <option>Pro Trend 15M/30M/1HR, Pro Trend 4HR/Daily/Weekly, Trending</option>
-          <option>Counter Trend 1M/3M/5M</option>
-          <option>Counter Trend 15M/30M</option>
-          <option>Counter Trend 4HR/Daily</option>
-          <option>Trending</option>
-          <option>Ranging</option>
         </select>
       </div>
       <div class="field">
@@ -773,30 +763,35 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
         </select>
       </div>
     </div>
+
+    <div class="field" style="margin-top:18px">
+      <label class="field-label">Pro / Counter Trend <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
+      <div class="tag-group" id="tags-protrend">
+        <span class="tag-pill" data-val="Pro Trend LTF">Pro Trend LTF</span>
+        <span class="tag-pill" data-val="Pro Trend MTF">Pro Trend MTF</span>
+        <span class="tag-pill" data-val="Pro Trend HTF">Pro Trend HTF</span>
+        <span class="tag-pill" data-val="Counter Trend LTF">Counter Trend LTF</span>
+        <span class="tag-pill" data-val="Counter Trend MTF">Counter Trend MTF</span>
+        <span class="tag-pill" data-val="Counter Trend HTF">Counter Trend HTF</span>
+      </div>
+    </div>
   </div>
 
   <!-- SETUP -->
   <div class="form-card fu d2">
     <div class="form-section-label">Setup</div>
-    <div class="form-grid fg2">
-      <div class="field">
-        <label class="field-label">Entry model<span class="req">*</span></label>
-        <select class="fi" id="f-model">
-          <option value="">Select entry model…</option>
-          <option>NC Model.</option>
-          <option>NC Model + Sweep</option>
-          <option>Internal Protected Structure Continuation.</option>
-          <option>Internal Protected Structure Continuation + Sweep</option>
-          <option>Internal FBoS Continuation, Internal Protected Structure Continuation.</option>
-          <option>External Protected Structure Continuation + Sweep, Internal Protected Structure Continuation + Sweep</option>
-          <option>Internal Protected Structure Continuation + Sweep, Joker Sweep</option>
-          <option>Joker Sweep</option>
-          <option>Besh Strategy</option>
-          <option>Besh Strategy, Internal Protected Structure Continuation + Sweep</option>
-          <option>Besh Strategy, Internal Protected Structure Continuation.</option>
-          <option>Other</option>
-        </select>
+    <div class="field">
+      <label class="field-label">Entry model<span class="req">*</span> <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
+      <div class="tag-group" id="tags-model">
+        <span class="tag-pill" data-val="NC">NC</span>
+        <span class="tag-pill" data-val="NC+S">NC+S</span>
+        <span class="tag-pill" data-val="IPS Continuation">IPS Continuation</span>
+        <span class="tag-pill" data-val="IPS Continuation+S">IPS Continuation+S</span>
+        <span class="tag-pill" data-val="15M PL/PH Rejection">15M PL/PH Rejection</span>
       </div>
+    </div>
+
+    <div class="form-grid fg3" style="margin-top:18px">
       <div class="field">
         <label class="field-label">Entry type</label>
         <select class="fi" id="f-entry-type">
@@ -807,8 +802,6 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
           <option>Re-entry</option>
         </select>
       </div>
-    </div>
-    <div class="form-grid fg2" style="margin-top:18px">
       <div class="field">
         <label class="field-label">Entry timeframe</label>
         <select class="fi" id="f-tf">
@@ -1082,7 +1075,10 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
     <div class="form-actions">
       <button class="btn-primary" onclick="submitTrade()">Log Trade</button>
       <button class="btn-ghost" onclick="clearForm()">Clear all</button>
-      <div class="form-success" id="form-success">✓ Trade logged successfully!</div>
+      <div class="form-success" id="form-success">
+        <span>✓ Trade logged.</span>
+        <button class="toggle-link" style="margin:0 0 0 4px" onclick="goTo('trades')">View in Trades →</button>
+      </div>
     </div>
   </div>
 
@@ -1478,19 +1474,17 @@ tbody tr.clickable-row:hover { background:rgba(59,130,246,0.07) !important; }
     <div class="pt-section-label">04 — Confluence Count</div>
     <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start">
       <div>
-        <label class="pt-field-label">Number of Confluences Present</label>
-        <span class="pt-field-hint">Count your valid technical confluences</span>
+        <label class="pt-field-label">Confluences Present</label>
+        <span class="pt-field-hint">Auto-counted from the tags you select →</span>
         <div class="pt-conf-counter">
-          <button class="pt-conf-btn" onclick="ptConfAdj(-1)">−</button>
           <div>
             <div class="pt-conf-num" id="pt-conf-num" style="color:var(--text3)">0</div>
             <div class="pt-conf-label">confluences</div>
           </div>
-          <button class="pt-conf-btn" onclick="ptConfAdj(1)">+</button>
         </div>
       </div>
       <div style="flex:1;min-width:240px">
-        <label class="pt-field-label">Confluences Present <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
+        <label class="pt-field-label">Confluences <span style="color:var(--text3);font-weight:400">(select all that apply)</span></label>
         <div class="tag-group" id="pt-conf-tags">
           <span class="tag-pill" data-val="Sweep" onclick="ptConfTag(this)">Sweep</span>
           <span class="tag-pill" data-val="Divergence" onclick="ptConfTag(this)">Divergence</span>
@@ -1638,15 +1632,6 @@ function ptBias(groupId, btn, val) {
   if (groupId === 'pt-htf-bias') ptState.htfBias = val;
   else if (groupId === 'pt-direction') ptState.direction = val;
   else if (groupId === 'pt-dxy-bias') ptState.dxyBias = val;
-  ptCalc();
-}
-
-function ptConfAdj(delta) {
-  ptState.confCount = Math.max(0, Math.min(10, ptState.confCount + delta));
-  const el = document.getElementById('pt-conf-num');
-  el.textContent = ptState.confCount;
-  const colors = ['var(--text3)','var(--red)','var(--gold)','var(--gold)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)','var(--green)'];
-  el.style.color = colors[Math.min(ptState.confCount, 10)];
   ptCalc();
 }
 
@@ -1979,6 +1964,14 @@ function parseTradeDate(t) {
   return null;
 }
 
+/* Unified short-date display: "D/M/YY" — keeps Notion + manual visually consistent. */
+function fmtDate(t) {
+  const d = parseTradeDate(t);
+  if (!d || isNaN(d)) return t.date || '—';
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${d.getDate()}/${d.getMonth() + 1}/${yy}`;
+}
+
 /* Build normalised combined trade list (HIST + localStorage), applying date filter */
 function getActiveTrades() {
   const manualTrades = getNewTrades().map(t => ({
@@ -2008,6 +2001,18 @@ function getActiveTrades() {
     const to = new Date(dashDateTo + 'T23:59:59');
     combined = combined.filter(t => { const d = parseTradeDate(t); return d && d <= to; });
   }
+
+  // Sort chronologically (oldest → newest) so the equity curve is honest
+  // even when manual trades are logged with backdated entries.
+  combined.sort((a, b) => {
+    const da = parseTradeDate(a);
+    const db = parseTradeDate(b);
+    if (!da && !db) return 0;
+    if (!da) return -1;
+    if (!db) return  1;
+    return da - db;
+  });
+
   return combined;
 }
 
@@ -2025,7 +2030,33 @@ function computeStats(trades) {
   const pf      = grossL ? (grossW / grossL).toFixed(2) : '∞';
   const exp     = trades.length ? (totalR / trades.length).toFixed(2) : '0.00';
   const bestTr  = trades.length ? trades.reduce((a, b) => b.pnl_r > a.pnl_r ? b : a) : null;
-  return { wins, losses, bes, totalR, winRate, avgWin, avgLoss, pf, exp, bestTr };
+
+  // Avg-win to avg-loss ratio  e.g. "3.08 : 1"
+  const wlRatio = (losses.length && Math.abs(parseFloat(avgLoss)) > 0)
+    ? (Math.abs(parseFloat(avgWin) / parseFloat(avgLoss))).toFixed(2)
+    : (wins.length ? '∞' : '0.00');
+
+  // Max drawdown — cumulative R peak-to-trough
+  let run = 0, peak = 0, maxDD = 0;
+  trades.forEach(t => {
+    run += t.pnl_r;
+    if (run > peak) peak = run;
+    const dd = run - peak;
+    if (dd < maxDD) maxDD = dd;
+  });
+  const maxDrawdown = Math.round(maxDD * 10) / 10;
+
+  // Current streak — count consecutive same-direction outcomes from the most recent trade backward
+  let streakLen = 0, streakKind = null;
+  for (let i = trades.length - 1; i >= 0; i--) {
+    const r = trades[i].result;
+    if (r !== 'Win' && r !== 'Loss') continue; // ignore BE in streak
+    if (streakKind === null) { streakKind = r; streakLen = 1; }
+    else if (r === streakKind) streakLen++;
+    else break;
+  }
+
+  return { wins, losses, bes, totalR, winRate, avgWin, avgLoss, pf, exp, bestTr, wlRatio, maxDrawdown, streakLen, streakKind };
 }
 
 function computePairStats(trades) {
@@ -2066,12 +2097,28 @@ function computeSetupStats(trades) {
 }
 
 function computeSessionStats(trades) {
-  const COLORS = { 'London':'#5ab4f5','Asia':'#a78bfa','New York':'#f0b429','Asia/London':'#00d97e','London/NY':'#f04f4f' };
+  const COLORS = {
+    'London':     '#5ab4f5',
+    'Asia':       '#a78bfa',
+    'New York':   '#f0b429',
+    'Sydney':     '#e879b2',
+    'Asia/London':       '#00d97e',
+    'Asia, London':      '#00d97e',
+    'London/NY':         '#f04f4f',
+    'London, New York':  '#f04f4f',
+  };
+  // Deterministic fallback for any unrecognised session string
+  const fallback = (s) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    const hue = h % 360;
+    return `hsl(${hue}, 55%, 62%)`;
+  };
   const map = {};
   trades.forEach(t => {
     const nm = t.session;
     if (!nm) return;
-    if (!map[nm]) map[nm] = { count:0, wins:0, losses:0, bes:0, pnl_r:0, color: COLORS[nm] || '#888888' };
+    if (!map[nm]) map[nm] = { count:0, wins:0, losses:0, bes:0, pnl_r:0, color: COLORS[nm] || fallback(nm) };
     map[nm].count++;
     map[nm].pnl_r += t.pnl_r;
     if (t.result === 'Win')       map[nm].wins++;
@@ -2105,13 +2152,38 @@ function renderDashboard() {
   const cnt = document.getElementById('dfb-count');
   if (cnt) cnt.textContent = trades.length + ' trades';
 
+  // Empty-range guard — render placeholders rather than misleading zeros
+  if (!trades.length) {
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="card kpi" style="grid-column:1/-1;padding:36px 24px;text-align:center">
+        <div style="font-size:38px;opacity:0.4;margin-bottom:10px">📭</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text2)">No trades in this range</div>
+        <div style="font-size:11.5px;color:var(--text3);margin-top:6px;font-family:var(--mono)">
+          Clear the date filter above or log a new trade
+        </div>
+      </div>`;
+    document.getElementById('eq-svg').innerHTML = '';
+    document.getElementById('donut-pct').textContent = '—';
+    document.getElementById('donut-stats').innerHTML = '';
+    ['donut-win','donut-loss','donut-be'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.strokeDasharray = '0 238.8';
+    });
+    document.getElementById('pair-bars').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0">No trades in selected range</div>';
+    document.getElementById('setup-grid').innerHTML = '';
+    document.getElementById('sess-row').innerHTML = '';
+    document.getElementById('ins-grid').innerHTML = '';
+    renderDashTable(dashFilter); // still renders pills + its own empty state
+    return;
+  }
+
   renderKPIs(stats, trades);
   renderEquity(trades);
   renderDonut(stats);
   renderPairs(pairStats);
   renderSetups(setupStats);
   renderSessions(sessStats);
-  renderInsights();
+  renderInsights(trades, stats, pairStats, setupStats, sessStats);
   renderDashTable(dashFilter);
 }
 
@@ -2120,14 +2192,31 @@ function renderDashboard() {
 ═══════════════════════════════════════════════════════════ */
 function renderKPIs(stats, trades) {
   const sign = stats.totalR >= 0 ? '+' : '';
+  const bestR = stats.bestTr ? stats.bestTr.pnl_r : 0;
+  const bestStr = stats.bestTr
+    ? (bestR > 0 ? `+${bestR}R` : `${bestR}R`)
+    : '—';
+  const ddStr = stats.maxDrawdown === 0 ? '0R' : `${stats.maxDrawdown}R`;
+
+  // Streak chip: ignored when no decided trades
+  let streakHtml = '';
+  if (stats.streakKind && stats.streakLen > 0) {
+    const isWin = stats.streakKind === 'Win';
+    const c = isWin ? 'var(--green)' : 'var(--red)';
+    streakHtml = `<span style="display:inline-flex;align-items:center;gap:5px;color:${c}">
+      ${isWin ? '▲' : '▼'} ${stats.streakLen}-trade ${isWin ? 'win' : 'loss'} streak
+    </span>`;
+  }
+
   const kpis = [
-    {lbl:"Total P&L",   val:`${sign}${stats.totalR}R`,          sub:`${trades.length} trades recorded`,             cls:"g",  vc:"green"},
-    {lbl:"Win Rate",    val:`${stats.winRate}%`,                 sub:`${stats.wins.length}W / ${stats.losses.length}L / ${stats.bes.length}BE`, cls:"g", vc:"green"},
-    {lbl:"Profit Factor",val:stats.pf,                           sub:"Gross profit ÷ gross loss",                    cls:"au", vc:"gold"},
-    {lbl:"Avg R Multiple",val:`${stats.avgWin}R`,                sub:`Expectancy: ${stats.exp}R/trade`,              cls:"b",  vc:"blue"},
-    {lbl:"Avg Win / Loss",val:`${stats.avgWin}R`,                sub:`Avg loss: ${stats.avgLoss}R`,                  cls:"b",  vc:"blue"},
-    {lbl:"Best Trade",  val: stats.bestTr ? `+${stats.bestTr.pnl_r}R` : '—',
-                        sub: stats.bestTr ? `${stats.bestTr.pair} · ${stats.bestTr.setup||stats.bestTr.model||''}` : 'No trades', cls:"au", vc:"gold"}
+    {lbl:"Total P&L",     val:`${sign}${stats.totalR}R`,         sub: streakHtml || `${trades.length} trades recorded`,           cls:"g",  vc:"green"},
+    {lbl:"Win Rate",      val:`${stats.winRate}%`,                sub:`${stats.wins.length}W / ${stats.losses.length}L / ${stats.bes.length}BE`, cls:"g", vc:"green"},
+    {lbl:"Profit Factor", val:stats.pf,                           sub:"Gross profit ÷ gross loss",                                  cls:"au", vc:"gold"},
+    {lbl:"Expectancy",    val:`${stats.exp}R`,                    sub:"Average R per trade",                                        cls:"b",  vc:"blue"},
+    {lbl:"Avg Win : Loss",val:`${stats.wlRatio} : 1`,             sub:`Win ${stats.avgWin}R · Loss ${stats.avgLoss}R`,             cls:"b",  vc:"blue"},
+    {lbl:"Max Drawdown",  val:ddStr,                              sub:"Peak-to-trough decline",                                     cls:"r",  vc:"red"},
+    {lbl:"Best Trade",    val: bestStr,
+                          sub: stats.bestTr ? `${stats.bestTr.pair} · ${stats.bestTr.setup||stats.bestTr.model||''}` : 'No trades', cls:"au", vc:"gold"}
   ];
   document.getElementById('kpi-row').innerHTML = kpis.map(k=>`
     <div class="card kpi ${k.cls}">
@@ -2248,19 +2337,110 @@ function renderSessions(sessStats) {
   }).join('');
 }
 
-function renderInsights() {
-  const ins=[
-    {ico:"🏆",type:"STRENGTH",tc:"var(--green)",title:"IPS Continuation is Your Edge",body:`70.6% win rate across 17 trades with +26R net — your highest win-rate setup at meaningful sample size. Average winner at 3.08R vs 1R risk means every win pays 3× your loss.`,act:"→ Prioritise IPS Continuation. Increase sizing when all confluences align.",ac:"g"},
-    {ico:"⚔️",type:"STRENGTH",tc:"var(--green)",title:"Gold is Your Best Instrument",body:`Gold leads with 70% WR and +40R across 20 trades. Produced the two biggest single wins (+6.5R FBoS, +4.5R multiple). Your edge in Gold is proven.`,act:"→ Continue treating Gold as primary focus. Add dedicated Gold accounts.",ac:"g"},
-    {ico:"⚠️",type:"WATCH",tc:"var(--gold)",title:"IPS + Sweep Below Break-Even Win Rate",body:`Your most-traded setup (21 trades) has only 47.6% WR — below 50%. Still profitable (+25R) due to high RR targets but you're losing more than half. Seven losses signal entry quality issues.`,act:"→ Add MTF alignment filter. Enter only on correct timeframe confirmation.",ac:"au"},
-    {ico:"🧠",type:"WATCH",tc:"var(--gold)",title:"Besh Strategy Still in Development",body:`44.4% WR on 9 trades — lowest performer by win rate. Still profitable (+10R net) but the strategy needs more time in forward testing before going full live.`,act:"→ FT only until WR exceeds 55% on 20+ trade sample.",ac:"au"},
-    {ico:"🕐",type:"SESSION",tc:"var(--blue-lt)",title:"London/NY Overlap is 100% Win Rate",body:`Both trades in London/New York overlap resulted in wins (+8R net). This session's institutional volume confluence clearly suits your strategy perfectly.`,act:"→ Actively hunt setups during London/NY overlap. Set alerts 30 min before NY open.",ac:"b"},
-    {ico:"💎",type:"ELITE",tc:"var(--gold)",title:"Exceptional Risk:Reward Ratio",body:`Avg win +3.08R vs avg loss −1R = 3.08:1 ratio. Profit factor of 8.83 means for every $1 lost you make $8.83. This is institutional-level performance.`,act:"→ Protect this ratio. Never risk more than 1R regardless of conviction.",ac:"g"},
-    {ico:"🎯",type:"FOCUS",tc:"var(--purple)",title:"Joker Sweep & FBoS Are A+ Setups",body:`Pure Joker Sweep is 100% WR (2/2, +7R), IPS + FBoS is 100% (2/2, +10R). Your own notes confirm these are 'very high probability' setups you feel most confident executing.`,act:"→ Build a checklist around Joker Sweep + FBoS criteria. Hunt these first each session.",ac:"b"},
-    {ico:"🧘",type:"MINDSET",tc:"var(--purple)",title:"Emotional Trades Are Your Biggest Leak",body:`Across 5+ loss trades, notes cite: moving SL from BE, re-entering off emotion, overrisking on conviction, FOMOing into others' trades. Avoidable losses destroying an elite system.`,act:"→ Pre-trade checklist: Am I emotional? Is this my plan? Only then enter.",ac:"au"},
-    {ico:"🌙",type:"SESSION",tc:"var(--blue-lt)",title:"Asia Session Has Most Room to Improve",body:`Asia is your highest-volume session (26 trades) but lowest WR at 57.7%. Notes show repeated entry on wrong timeframes and fighting HTF direction during Asia sessions.`,act:"→ During Asia, only take IPS Continuation or Sweep entries. No countertrend.",ac:"b"}
-  ];
-  document.getElementById('ins-grid').innerHTML=ins.map(i=>`
+function renderInsights(trades, stats, pairStats, setupStats, sessStats) {
+  const ins = [];
+
+  // Find best setup by WR with >=5 trades
+  const setupArr = Object.entries(setupStats);
+  const bySetupWR = setupArr.filter(([,v]) => v.count >= 5).sort((a,b) => b[1].wr - a[1].wr);
+  const bestSetup = bySetupWR[0];
+  if (bestSetup) {
+    const [nm, v] = bestSetup;
+    ins.push({
+      ico:"🏆", type:"STRENGTH", tc:"var(--green)",
+      title: `${nm} is Your Edge`,
+      body:  `${v.wr}% win rate across ${v.count} trades with ${v.pnl_r >= 0 ? '+' : ''}${v.pnl_r}R net. Highest-WR setup at meaningful sample size.`,
+      act:   `→ Prioritise ${nm}. Increase sizing when all confluences align.`,
+      ac:"g"
+    });
+  }
+
+  // Best pair by net R
+  const pairArr = Object.entries(pairStats).sort((a,b) => b[1].pnl_r - a[1].pnl_r);
+  const bestPair = pairArr[0];
+  if (bestPair && bestPair[1].pnl_r > 0) {
+    const [nm, v] = bestPair;
+    ins.push({
+      ico:"⚔️", type:"STRENGTH", tc:"var(--green)",
+      title: `${nm} is Your Best Instrument`,
+      body:  `${nm} leads with ${v.wr}% WR and ${v.pnl_r >= 0 ? '+' : ''}${v.pnl_r}R across ${v.count} trades. Your edge here is statistically clear.`,
+      act:   `→ Continue treating ${nm} as primary focus.`,
+      ac:"g"
+    });
+  }
+
+  // Underperforming high-volume setup (>=8 trades, <50% WR)
+  const highVolWeak = setupArr
+    .filter(([,v]) => v.count >= 8 && v.wr < 50)
+    .sort((a,b) => b[1].count - a[1].count)[0];
+  if (highVolWeak) {
+    const [nm, v] = highVolWeak;
+    ins.push({
+      ico:"⚠️", type:"WATCH", tc:"var(--gold)",
+      title: `${nm} Below Break-Even WR`,
+      body:  `Most-traded setup at ${v.count} trades but only ${v.wr}% WR — below 50%. ${v.pnl_r >= 0 ? `Still profitable (+${v.pnl_r}R) thanks to RR` : `Net ${v.pnl_r}R`}. Entry-quality issue.`,
+      act:   "→ Add MTF alignment filter. Only enter on correct-timeframe confirmation.",
+      ac:"au"
+    });
+  }
+
+  // Best session by WR (with >=3 trades)
+  const sessArr = Object.entries(sessStats);
+  const bestSess = sessArr.filter(([,v]) => v.count >= 3).sort((a,b) => b[1].wr - a[1].wr)[0];
+  if (bestSess) {
+    const [nm, v] = bestSess;
+    ins.push({
+      ico:"🕐", type:"SESSION", tc:"var(--blue-lt)",
+      title: `${nm} is Your Highest-WR Session`,
+      body:  `${v.wr}% win rate across ${v.count} trades for ${v.pnl_r >= 0 ? '+' : ''}${v.pnl_r}R net. This session's flow suits your strategy.`,
+      act:   `→ Actively hunt setups during ${nm}.`,
+      ac:"b"
+    });
+  }
+
+  // RR / Profit Factor insight — always-on, dynamic
+  ins.push({
+    ico:"💎", type:"ELITE", tc:"var(--gold)",
+    title:"Risk:Reward Profile",
+    body: `Avg win ${stats.avgWin}R vs avg loss ${stats.avgLoss}R → ${stats.wlRatio}:1 ratio. Profit factor of ${stats.pf} — for every $1 lost you make $${stats.pf}.`,
+    act:"→ Protect this ratio. Never risk more than 1R regardless of conviction.",
+    ac:"g"
+  });
+
+  // Max drawdown alert if material
+  if (stats.maxDrawdown <= -3) {
+    ins.push({
+      ico:"📉", type:"RISK", tc:"var(--red)",
+      title: `${Math.abs(stats.maxDrawdown)}R Peak-to-Trough Drawdown`,
+      body:  `Largest realised drawdown was ${stats.maxDrawdown}R from peak equity. Worth knowing what this felt like emotionally — that's the cost of your edge in practice.`,
+      act:   "→ Track psychology around drawdown sequences. Reduce risk if multiple R in a row.",
+      ac:"r"
+    });
+  }
+
+  // Worst session (>=5 trades, lowest WR)
+  const worstSess = sessArr.filter(([,v]) => v.count >= 5).sort((a,b) => a[1].wr - b[1].wr)[0];
+  if (worstSess && bestSess && worstSess[0] !== bestSess[0]) {
+    const [nm, v] = worstSess;
+    ins.push({
+      ico:"🌙", type:"SESSION", tc:"var(--blue-lt)",
+      title: `${nm} Has Most Room to Improve`,
+      body:  `${v.count} trades but only ${v.wr}% WR. Review whether you're forcing trades in this session or it genuinely doesn't suit your model.`,
+      act:   `→ Be selective during ${nm}. Higher bar for entry.`,
+      ac:"b"
+    });
+  }
+
+  // Static mindset reminder — value comes from the message, not the math
+  ins.push({
+    ico:"🧘", type:"MINDSET", tc:"var(--purple)",
+    title:"Emotional Trades Are the Biggest Leak",
+    body:`Recurring patterns in losing trades: moving SL away from BE, re-entering off emotion, overrisking on conviction, FOMO into others' trades. Avoidable losses compound.`,
+    act:"→ Pre-trade checklist: Am I emotional? Is this my plan? Only then enter.",
+    ac:"au"
+  });
+
+  document.getElementById('ins-grid').innerHTML = ins.map(i=>`
     <div class="card ins-card">
       <div class="ins-hdr">
         <div class="ins-ico">${i.ico}</div>
@@ -2284,6 +2464,9 @@ function renderDashTable(f='All') {
     if(f==='FT')     return t.type && (t.type.includes('Test')||t.type.includes('BT')||t.type.includes('FT'));
     return true;
   });
+  // Newest-first for review (data is currently chronological asc from getActiveTrades).
+  const display = [...data].reverse();
+  const total = allTrades.length;
   const w=allTrades.filter(t=>t.result==='Win');
   const l=allTrades.filter(t=>t.result==='Loss');
   const b=allTrades.filter(t=>t.result==='Breakeven');
@@ -2294,16 +2477,29 @@ function renderDashTable(f='All') {
     <button class="pill ${c===dashFilter?'on':''}" onclick="renderDashTable('${c}')">${c}<span class="pill-n">${
       c==='All'?allTrades.length:c==='Wins'?w.length:c==='Losses'?l.length:c==='BE'?b.length:c==='Live'?live.length:ft.length
     }</span></button>`).join('');
-  document.getElementById('dash-tbody').innerHTML=data.map((t,i)=>{
+
+  if (!display.length) {
+    document.getElementById('dash-tbody').innerHTML = `<tr><td colspan="12">
+      <div class="empty-state">
+        <div class="es-ico">📭</div>
+        <div>No trades match this filter</div>
+        <div style="margin-top:6px;font-size:11px">${total === 0 ? 'Adjust the date range or log a new trade' : 'Try a different filter or clear the date range'}</div>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  document.getElementById('dash-tbody').innerHTML=display.map((t,i)=>{
     const rc=t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
     const pc=t.pnl_r>0?'var(--green)':t.pnl_r<0?'var(--red)':'var(--text3)';
     const dc=t.direction==='Long'?'var(--green)':t.direction==='Short'?'var(--red)':'var(--text3)';
     const rr=typeof t.rr==='number'?t.rr:parseFloat(t.rr)||0;
     const tc=t.type==='Live'?'':t.type&&t.type.includes('Back')?'<span class="badge bft">BT</span>':'<span class="badge bft">FT</span>';
     const newTag=t._src==='manual'?'<span style="font-size:8.5px;color:var(--blue-lt);font-family:var(--mono);margin-left:3px">NEW</span>':'';
+    const idx = display.length - i; // most recent gets highest number
     return `<tr>
-      <td class="td-dim">${i+1}${newTag}</td>
-      <td class="td-num" style="font-size:10.5px">${t.date}</td>
+      <td class="td-dim">${idx}${newTag}</td>
+      <td class="td-num" style="font-size:10.5px">${fmtDate(t)}</td>
       <td><strong>${t.pair}</strong></td>
       <td style="color:var(--text2);font-size:11px">${t.session||'—'}</td>
       <td style="font-size:11px;font-weight:700;color:${dc}">${t.direction||'—'}</td>
@@ -2341,9 +2537,15 @@ function setDefaultDatetime() {
   document.getElementById('f-datetime').value = local;
 }
 
-// Tag pills toggle
-document.querySelectorAll('.tag-pill').forEach(p=>{
-  p.addEventListener('click',()=>p.classList.toggle('on'));
+// Tag pills toggle — scoped to the New-Trade form groups only.
+// (Pre-trade page pills have their own inline onclick handlers; attaching this
+//  global listener to them would cause a double-toggle.)
+['tags-model','tags-protrend','tags-conditions','tags-confluences'].forEach(gid => {
+  const group = document.getElementById(gid);
+  if (!group) return;
+  group.querySelectorAll('.tag-pill').forEach(p => {
+    p.addEventListener('click', () => p.classList.toggle('on'));
+  });
 });
 
 function onResultChange() {
@@ -2372,14 +2574,15 @@ function toggleExtra() {
 
 function clearForm() {
   // Reset all inputs
-  ['f-datetime','f-pair','f-type','f-direction','f-session','f-protrend','f-duration',
-   'f-model','f-entry-type','f-tf','f-execution','f-result','f-result-method','f-rr','f-target',
+  ['f-datetime','f-pair','f-type','f-direction','f-session','f-duration',
+   'f-entry-type','f-tf','f-execution','f-result','f-result-method','f-rr','f-target',
    'f-reason','f-risk','f-news','f-vol','f-sl','f-entry-conf','f-be','f-reentry','f-lf-break',
    'f-mf-break','f-rules','f-rules-reason','f-emotion','f-psych','f-htf','f-dxy','f-ext',
    'f-news-inf','f-lessons','f-tv1','f-tv2','f-dxy-chart'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
+  // Clear all selected tag pills across every form group (model, protrend, conditions, confluences)
   document.querySelectorAll('.tag-pill.on').forEach(p=>p.classList.remove('on'));
   document.getElementById('cf-reason').classList.remove('show');
   document.getElementById('cf-rules-reason').classList.remove('show');
@@ -2388,11 +2591,26 @@ function clearForm() {
 }
 
 function validateForm() {
-  const req = ['f-datetime','f-pair','f-type','f-direction','f-session','f-model','f-result','f-rr','f-risk','f-news'];
+  const req = ['f-datetime','f-pair','f-type','f-direction','f-session','f-result','f-rr','f-risk','f-news'];
   const missing = req.filter(id=>{const el=document.getElementById(id); return !el||!el.value.trim();});
   if(missing.length){
     const el=document.getElementById(missing[0]);
     if(el){ el.focus(); el.style.borderColor='var(--red)'; setTimeout(()=>{el.style.borderColor='';},2500); }
+    return false;
+  }
+  // Required tag group: at least one entry model
+  if (getSelectedTags('tags-model').length === 0) {
+    const grp = document.getElementById('tags-model');
+    if (grp) {
+      grp.style.outline = '1px solid var(--red)';
+      grp.style.outlineOffset = '4px';
+      grp.style.borderRadius = '8px';
+      grp.scrollIntoView({ behavior:'smooth', block:'center' });
+      setTimeout(() => {
+        grp.style.outline = '';
+        grp.style.outlineOffset = '';
+      }, 2500);
+    }
     return false;
   }
   return true;
@@ -2408,9 +2626,9 @@ function submitTrade() {
     type: document.getElementById('f-type').value,
     direction: document.getElementById('f-direction').value,
     session: document.getElementById('f-session').value,
-    protrend: document.getElementById('f-protrend').value,
+    protrend: getSelectedTags('tags-protrend').join(', '),
     duration: document.getElementById('f-duration').value,
-    model: document.getElementById('f-model').value,
+    model: getSelectedTags('tags-model').join(', '),
     entryType: document.getElementById('f-entry-type').value,
     tf: document.getElementById('f-tf').value,
     execution: document.getElementById('f-execution').value,
@@ -2447,7 +2665,7 @@ function submitTrade() {
   arr.unshift(t);
   saveNewTrades(arr);
   document.getElementById('form-success').classList.add('show');
-  setTimeout(()=>{ document.getElementById('form-success').classList.remove('show'); },3000);
+  setTimeout(()=>{ document.getElementById('form-success').classList.remove('show'); },6000);
   clearForm();
   renderDashboard(); // recalculate everything immediately
 }
@@ -2476,6 +2694,7 @@ function renderTradesTable() {
       _id: t.id,
       _src: 'manual',
       date: t.datetime ? t.datetime.split('T')[0] : '—',
+      datetime: t.datetime || null,
       pair: t.pair,
       direction: t.direction,
       session: t.session,
@@ -2492,6 +2711,7 @@ function renderTradesTable() {
       _id: null,
       _src: 'notion',
       date: t.date,
+      datetime: null,
       pair: t.pair,
       direction: t.direction,
       session: t.session,
@@ -2505,6 +2725,16 @@ function renderTradesTable() {
       emotion: '—',
     }))
   ];
+
+  // Sort newest first (descending by date) — keeps recent trades at the top.
+  combined.sort((a, b) => {
+    const da = parseTradeDate(a);
+    const db = parseTradeDate(b);
+    if (!da && !db) return 0;
+    if (!da) return  1;
+    if (!db) return -1;
+    return db - da;
+  });
 
   // Filter by result/type
   let filtered = combined.filter(t=>{
@@ -2561,7 +2791,7 @@ function renderTradesTable() {
     const srcBadge=t._src==='manual'?`<span style="font-family:var(--mono);font-size:9px;color:var(--blue-lt);background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);padding:2px 7px;border-radius:10px">NEW</span>`:'';
     return `<tr class="clickable-row" onclick="openTradePanel(${i})">
       <td class="td-dim">${filtered.length-i}</td>
-      <td class="td-num" style="font-size:10.5px">${t.date}</td>
+      <td class="td-num" style="font-size:10.5px">${fmtDate(t)}</td>
       <td><strong>${t.pair}</strong> ${srcBadge}</td>
       <td style="font-size:11px;font-weight:700;color:${dc}">${t.direction||'—'}</td>
       <td style="font-size:11px;color:var(--text2)">${t.session}</td>
